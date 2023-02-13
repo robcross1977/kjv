@@ -29,11 +29,11 @@ const chapterRange = wrapNonCap(`${chapterRangeChapterStart}\\s*-\\s*${chapterRa
 const params = wrapNonCap(`${chapter}?|${chapterVerse}?|${chapterRange}?`);
 const final = `^\\s*${name}\\s*${params}?\\s*`;
 
-export const matcher = {
+const matcher = {
   from: () => new RegExp(final, "g")
 }
 
-export function wrapNonCap(internal: string = '') {
+function wrapNonCap(internal: string = '') {
   return pipe(
     internal,
     fromPredicate(i => i.length > 0),
@@ -42,5 +42,4 @@ export function wrapNonCap(internal: string = '') {
   )
 }
 
-
-
+export { wrapNonCap, matcher };
