@@ -34,7 +34,7 @@ function getParams(search: string) {
 
 function getMatchGroupsEither(search: string): Either<ParamsError, Record<string, string>> {
   return pipe(
-    matcher.from().exec(search)?.groups,
+    matcher.build().exec(search)?.groups,
     fromNullable(paramsErrorFrom("no groups found")),
   );
 }

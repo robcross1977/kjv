@@ -30,7 +30,7 @@ const params = wrapNonCap(`${chapter}?|${chapterVerse}?|${chapterRange}?`);
 const final = `^\\s*${name}\\s*${params}?\\s*`;
 
 const matcher = {
-  from: () => new RegExp(final, "g")
+  build: () => new RegExp(final, "g")
 }
 
 function wrapNonCap(internal: string = '') {
