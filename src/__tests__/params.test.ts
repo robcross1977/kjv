@@ -1,50 +1,116 @@
-import { getParams } from "../params"
-import { some, none, Option } from "fp-ts/Option"
+/** 1 Song of Solomon 1:2 - 3:4
+  Valid Types:
+    None              ()
+    Book              (book)
+    BookChapter       (book, chapterStart)
+    BookChapterRange  (book, chapterStart, chapterEnd)
+    BookChapterVerse  (book, chapterStart, verseStart)
+    VerseRange        (book, chapterStart, verseStart, verseEnd)
+    ChapterVerseRange (book, chapterStart, verseStart, chapterEnd, verseEnd)
+*/
+
+import { getParams, ParamsError, PartsWrapped } from "../params";
+import { Either, left, right, map, mapLeft, } from "fp-ts/Either";
+import { pipe } from "fp-ts/lib/function";
+
+function valIsNull(): Either<ParamsError, number> {
+  return left({ msg: 'value is null or undefined', err: ''});
+}
 
 describe('The params module', () => {
-  const searches = [
-    "  1   Song   of   Solomon  ",
-    "  1   Song   of   Solomon   1  ",
-    "  1   Song   of   Solomon   1  :  2  ",
-    "1Song of Solomon1:2-  3",
-    "  1   Song   of   Solomon   1  -  4  ",
-  ]
-  
-  const expectations: ReturnType<typeof getParams>[] = [
-    some({ book: some("1 Song of Solomon"), chapterStart: none,    chapterEnd: none,    verseStart: none,    verseEnd: none }),
-    some({ book: some("1 Song of Solomon"), chapterStart: some(1), chapterEnd: none,    verseStart: none,    verseEnd: none }),
-    some({ book: some("1 Song of Solomon"), chapterStart: some(1), chapterEnd: none,    verseStart: some(2), verseEnd: none }),
-    some({ book: some("1 Song of Solomon"), chapterStart: some(1), chapterEnd: none,    verseStart: some(2), verseEnd: some(3) }),
-    some({ book: some("1 Song of Solomon"), chapterStart: some(1), chapterEnd: some(4), verseStart: none,    verseEnd: none }),
-  ]
-  /* 1 Song of Solomon 1:2 - 3:4
-  Valid Types:
-  None              ()
-  Book              (book)
-  BookChapter       (book, chapterStart)
-  BookChapterRange  (book, chapterStart, chapterEnd)
-  BookChapterVerse  (book, chapterStart, verseStart)
-  VerseRange        (book, chapterStart, verseStart, verseEnd)
-  ChapterVerseRange (book, chapterStart, verseStart, chapterEnd, verseEnd)
-  */
-  searches.map((val, index) => {
-    it(`should return the proper params for the search string ${val}`, () => {
-      // arrange
-      // act
-      const result = getParams(val)
-      // assert
-      expect(result).toEqual(expectations[index])
-    })
-  })
+  const tests: [search: string, expected: PartsWrapped][] = [
+    [
+      "  1   Song   of   Solomon  ",
+      right({
+        book: right<ParamsError, string>("1 Song of Solomon"),
+        chapterStart: valIsNull(),
+        chapterEnd: valIsNull(),
+        verseStart: valIsNull(),
+        verseEnd: valIsNull(),
+      }),
+    ],
+    [
+      "  1   Song   of   Solomon   1  ",
+      right({
+        book: right<ParamsError, string>("1 Song of Solomon"),
+        chapterStart: right(1),
+        chapterEnd: valIsNull(),
+        verseStart: valIsNull(),
+        verseEnd: valIsNull(),
+      }),
+    ],
+    [
+      "  1   Song   of   Solomon   1  :  2  ",
+      right({
+        book: right<ParamsError, string>("1 Song of Solomon"),
+        chapterStart: right(1),
+        chapterEnd: valIsNull(),
+        verseStart: right(2),
+        verseEnd: valIsNull(),
+      }),
+    ],
+    [
+      "1Song of Solomon1:2-  3",
+      right({
+        book: right<ParamsError, string>("1 Song of Solomon"),
+        chapterStart: right(1),
+        chapterEnd: valIsNull(),
+        verseStart: right(2),
+        verseEnd: right(3),
+      }),
+    ],
+    [
+      "  1Song of Solomon1:2-  3  :  4  ",
+      right({
+        book: right<ParamsError, string>("1 Song of Solomon"),
+        chapterStart: right(1),
+        chapterEnd: right(3),
+        verseStart: right(2),
+        verseEnd: right(4),
+      }),
+    ],
+    [
+      "  1   Song   of   Solomon   1  -  4  ",
+      right({
+        book: right<ParamsError, string>("1 Song of Solomon"),
+        chapterStart: right(1),
+        chapterEnd: right(4),
+        verseStart: valIsNull(),
+        verseEnd: valIsNull(),
+      }),
+    ],
+  ];
 
-  it('should return none if no book name', () => {
-    // arrange
-    const input = undefined as unknown as string
-    const expected: Option<number> = none
-    // act
-    const result = getParams(input)
-    console.log(`result: ${JSON.stringify(result)}`)
-    // assert
-    expect(result).toEqual(expected)
-  })
-})
+  tests.map(test => {
+    it(`should return books params for the search string: ${test[0]}`, () => {
+      actAndAssert(test[0], test[1]);
+    });
+  });
+
+  const flops: [title: string, search: string, error: ParamsError][] = [
+    [
+      'should return "no groups found" error if there are no regex matches',
+      '',
+      { msg: "no groups found", err: '' },
+    ],
+
+  ];
+
+  flops.map(flop => {
+    it(`${flop[0]}`, () => {
+      actAndAssert(flop[1], flop[2]);
+    });
+  });
+});
+
+/* Helpers */
+function actAndAssert(search: string, expected: PartsWrapped | ParamsError) {
+  expect.assertions(1);
+
+  pipe(
+    search,
+    getParams,
+    map(result => expect(result).toEqual(expected)),
+    mapLeft(err => expect(err).toEqual(expected)),
+  );
+}
