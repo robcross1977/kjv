@@ -1,55 +1,48 @@
 import { pipe } from "fp-ts/function";
 import { replace, trim } from "fp-ts/string";
-import { matcher } from "./matcher";
-import { Either, fromNullable, map, chain, fromPredicate, isRight, getOrElse, of } from "fp-ts/Either";
+import { inputRegex } from "./input";
+import {
+  Either,
+  fromNullable,
+  map,
+  chain,
+  fromPredicate,
+  getOrElse,
+  of,
+} from "fp-ts/Either";
 import { Predicate } from "fp-ts/Predicate";
+import { match } from "./matcher";
+import { errorFrom, IError } from "./error";
 
 type ParamsMsg =
-  | 'no groups found'
-  | 'value is null or undefined'
-  | 'parts empty'
-  | 'parsed string is NaN'
-  | 'bookNum not found'
-  | 'string must have at least 1 character';
+  | "no groups found"
+  | "value is null or undefined"
+  | "parts empty"
+  | "parsed string is NaN"
+  | "bookNum not found"
+  | "string must have at least 1 character";
 
-type ParamsError = {
-  msg: ParamsMsg,
-  err?: string
-}
-
-function paramsErrorFrom(tag: ParamsMsg, err: unknown = ''): ParamsError {
-  return {
-    msg: tag,
-    err: String(err),
-  }
-}
+interface ParamsError extends IError<ParamsMsg> {}
 
 function getParams(search: string) {
-  return pipe(
-    search,
-    getMatchGroupsEither,
-    map(getParts),
-  )
+  return pipe(search, getMatchGroupsEither, map(getParts));
 }
 
-function getMatchGroupsEither(search: string): Either<ParamsError, Record<string, string>> {
-  return pipe(
-    matcher.build().exec(search)?.groups,
-    fromNullable(paramsErrorFrom("no groups found")),
-  );
+function getMatchGroupsEither(search: string) {
+  return match(search, inputRegex, "g");
 }
 
 type PartsInner = {
-  book: Either<ParamsError, string>,
-  chapterStart: Either<ParamsError, number>,
-  chapterEnd: Either<ParamsError, number>,
-  verseStart: Either<ParamsError, number>,
-  verseEnd: Either<ParamsError, number>,
-}
+  book: Either<ParamsError, string>;
+  chapterStart: Either<ParamsError, number>;
+  chapterEnd: Either<ParamsError, number>;
+  verseStart: Either<ParamsError, number>;
+  verseEnd: Either<ParamsError, number>;
+};
 
 type PartsWrapped = Either<ParamsError, PartsInner>;
 
-function getParts(parts: Record<string, string>): PartsWrapped  {
+function getParts(parts: Record<string, string>): PartsWrapped {
   return of({
     book: buildBook(parts),
     chapterStart: buildChapterStart(parts),
@@ -59,45 +52,51 @@ function getParts(parts: Record<string, string>): PartsWrapped  {
   });
 }
 
-const nonEmptyStringPredicate: Predicate<string> = (v = '') =>
+const nonEmptyStringPredicate: Predicate<string> = (v = "") =>
   typeof v === "string" && v.length > 0;
 
 function getFormattedBookName(num?: string, text?: string) {
-  return `${getBookNumString(num)}${trimBook(text ?? '')}`
+  return `${getBookNumString(num)}${trimBook(text ?? "")}`;
 }
 
-function buildBook({bookNum: num, bookName: text}: Record<string, string>) {
+function buildBook({
+  bookNum: num,
+  bookName: text,
+}: Record<string, string>): Either<ParamsError, string> {
   return pipe(
     getFormattedBookName(num, text),
-    fromPredicate(
-      nonEmptyStringPredicate,
-      () => paramsErrorFrom('no groups found', '')
-    ),
+    fromPredicate(nonEmptyStringPredicate, () =>
+      errorFrom<ParamsMsg>("no groups found")
+    )
   );
 }
 
 function buildChapterStart({
   chapterStart,
   chapterVerseChapterStart,
-  chapterRangeChapterStart
+  chapterRangeChapterStart,
 }: Record<string, string | undefined>) {
-  return toNumber(chapterStart ?? chapterVerseChapterStart ?? chapterRangeChapterStart);
+  return toNumber(
+    chapterStart ?? chapterVerseChapterStart ?? chapterRangeChapterStart
+  );
 }
 
 function buildChapterEnd({
   chapterVerseChapterEnd,
-  chapterRangeChapterEnd
+  chapterRangeChapterEnd,
 }: Record<string, string>) {
   return toNumber(chapterVerseChapterEnd ?? chapterRangeChapterEnd);
 }
 
-function buildVerseStart({chapterVerseVerseStart}: Record<string, string | undefined>) {
+function buildVerseStart({
+  chapterVerseVerseStart,
+}: Record<string, string | undefined>) {
   return toNumber(chapterVerseVerseStart);
 }
 
 function buildVerseEnd({
   chapterVerseVerseEnd,
-  chapterRangeVerseEnd
+  chapterRangeVerseEnd,
 }: Record<string, string>) {
   return toNumber(chapterVerseVerseEnd ?? chapterRangeVerseEnd);
 }
@@ -105,36 +104,35 @@ function buildVerseEnd({
 const toStringNumberNotNaNPredicate: Predicate<string> = (v) =>
   !Number.isNaN(Number(v));
 
-function toNumber(val?: string) {
+function toNumber(val?: string): Either<ParamsError, number> {
   return pipe(
     val,
-    fromNullable(paramsErrorFrom('value is null or undefined')),
+    fromNullable(errorFrom<ParamsMsg>("value is null or undefined")),
     chain(
-      fromPredicate(
-        toStringNumberNotNaNPredicate,
-        err => paramsErrorFrom('parsed string is NaN', err)
-      ),
+      fromPredicate(toStringNumberNotNaNPredicate, (err) =>
+        errorFrom<ParamsMsg>("parsed string is NaN", err)
+      )
     ),
-    map(Number),
+    map(Number)
   );
 }
 
 function trimBook(name: string) {
-  return pipe(
-    name,
-    replace(/\s\s+/g, ' '),
-    trim,
-  )
+  return pipe(name, replace(/\s\s+/g, " "), trim);
 }
 
 function getBookNumString(bookNum?: string) {
   return pipe(
     bookNum,
-    fromNullable<ParamsError>(paramsErrorFrom('bookNum not found')),
-    chain(fromPredicate(nonEmptyStringPredicate, err => paramsErrorFrom('string must have at least 1 character', err))),
-    map(n => `${n} `),
-    getOrElse(() => ''),
+    fromNullable<ParamsError>(errorFrom<ParamsMsg>("bookNum not found")),
+    chain(
+      fromPredicate(nonEmptyStringPredicate, (err) =>
+        errorFrom<ParamsMsg>("string must have at least 1 character", err)
+      )
+    ),
+    map((n) => `${n} `),
+    getOrElse(() => "")
   );
 }
 
-export { type ParamsError, type PartsWrapped, type PartsInner, getParams }
+export { type ParamsError, type PartsWrapped, type PartsInner, getParams };
