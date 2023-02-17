@@ -2,7 +2,7 @@ import { pipe } from "fp-ts/function";
 import { fromPredicate, map, getOrElse } from "fp-ts/Option";
 
 /**
- * The Matcher module exists because it is easier for me to work
+ * The Input module exists because it is easier for me to work
  * on and debug the very difficult-to-read regex required by this
  * app, so I'm breaking it down into small components, giving them
  * names and pasting them together. Yes, I could just copy the
@@ -42,12 +42,6 @@ const chapterRange = wrapNonCap(
 const params = wrapNonCap(`${chapter}?|${chapterVerse}?|${chapterRange}?`);
 const final = `^\\s*${name}\\s*${params}?\\s*`;
 
-const matcher = {
-  // We want to give a new RegExp every time so that
-  // it isn't cluttered with pre-existing junk.
-  build: () => new RegExp(final, "g"),
-};
-
 /**
  * The wrapNonCap function simply wraps a regex statement inside of a
  * non-capturing group. I turned it into a function to allow me to
@@ -67,4 +61,4 @@ function wrapNonCap(internal: string = "") {
   );
 }
 
-export { wrapNonCap, matcher, final as inputRegex };
+export { wrapNonCap, final as inputRegex };

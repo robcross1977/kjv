@@ -1,11 +1,11 @@
-interface IError<MsgType extends string> {
+type IError<MsgType extends string> = {
   msg: MsgType;
   err?: unknown;
-}
+};
 
 function errorFrom<MsgType extends string>(
   msg: MsgType,
-  err: unknown = ''
+  err: unknown = ""
 ): IError<MsgType> {
   return {
     msg,

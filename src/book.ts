@@ -69,40 +69,41 @@ type BookNames =
   | "Zechariah"
   | "Zephaniah";
 
-type BookNum =
-  | "1"
-  | "2"
-  | "3"
-  | "i"
-  | "ii"
-  | "iii"
-  | "1st"
-  | "2nd"
-  | "3rd"
-  | "first"
-  | "second"
-  | "third";
+const validBookNums = [
+  "1",
+  "2",
+  "3",
+  "i",
+  "ii",
+  "iii",
+  "1st",
+  "2nd",
+  "3rd",
+  "first",
+  "second",
+  "third",
+] as const;
 
-type VersesInChapter = Record<
+type ValidBookNums = typeof validBookNums;
+
+//type BookNums = ValidBookNums[number];
+
+type BookMeta = Record<
   BookNames,
   { abbreviations?: string[]; verseCounts: Record<string, number> }
 >;
 
-function verseCountFrom(book: BookNames, chapter: string) {
-  return verseCountRecords[book].verseCounts[chapter];
+function getValidNameRegex() {
+  return validBookNums.join("|");
 }
 
-const matcher = {
-  // We want to give a new RegExp every time so that
-  // it isn't cluttered with pre-existing junk.
-  build: () =>
-    new RegExp(
-      "^\\s*(?<bookNum>1|2|3|i|ii|iii|1st|2nd|3rd|first|second|third)?\\s*(?<bookName>[A-Za-z ]+).?\\s*$",
-      "gi"
-    ),
-};
+function verseCountFrom(book: BookNames, chapter: string) {
+  return bookMeta[book].verseCounts[chapter];
+}
 
-const verseCountRecords: VersesInChapter = {
+const bookRegex = `^\\s*(?<bookNum>${getValidNameRegex()})?\\s*(?<bookName>[A-Za-z ]+).?\\s*$`;
+
+const bookMeta: BookMeta = {
   "1 Chronicles": {
     abbreviations: [
       "1 Chr.",

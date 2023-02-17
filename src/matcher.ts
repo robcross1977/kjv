@@ -3,15 +3,7 @@ import { Either, fromNullable, map } from "fp-ts/Either";
 import { errorFrom, IError } from "./error";
 
 type MatcherMsg = "no groups found";
-interface MatcherError extends IError<MatcherMsg> {}
-
-function match<TType extends string>(
-  search: string,
-  regex: string,
-  flags?: string
-) {
-  return pipe(search, getGroups<TType>(regex, flags));
-}
+export type MatcherError = IError<MatcherMsg>;
 
 function build(regex: string, flags?: string) {
   return new RegExp(regex, flags);
@@ -29,4 +21,4 @@ function getGroups<TType extends string>(regex: string, flags?: string) {
   };
 }
 
-export { match };
+export { getGroups };

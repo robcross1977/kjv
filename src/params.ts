@@ -11,7 +11,7 @@ import {
   of,
 } from "fp-ts/Either";
 import { Predicate } from "fp-ts/Predicate";
-import { match } from "./matcher";
+import { getGroups } from "./matcher";
 import { errorFrom, IError } from "./error";
 
 type ParamsMsg =
@@ -22,14 +22,10 @@ type ParamsMsg =
   | "bookNum not found"
   | "string must have at least 1 character";
 
-interface ParamsError extends IError<ParamsMsg> {}
+type ParamsError = IError<ParamsMsg>;
 
 function getParams(search: string) {
-  return pipe(search, getMatchGroupsEither, map(getParts));
-}
-
-function getMatchGroupsEither(search: string) {
-  return match(search, inputRegex, "g");
+  return pipe(search, getGroups(inputRegex, "g"), map(getParts));
 }
 
 type PartsInner = {
