@@ -10,14 +10,14 @@
 */
 
 import { getParams, ParamsError, PartsWrapped } from "../params";
-import { Either, left, right, map, mapLeft, } from "fp-ts/Either";
+import { Either, left, right, map, mapLeft } from "fp-ts/Either";
 import { pipe } from "fp-ts/lib/function";
 
 function valIsNull(): Either<ParamsError, number> {
-  return left({ msg: 'value is null or undefined', err: ''});
+  return left({ msg: "value is null or undefined", err: "" });
 }
 
-describe('The params module', () => {
+describe("The params module", () => {
   const tests: [search: string, expected: PartsWrapped][] = [
     [
       "  1   Song   of   Solomon  ",
@@ -81,7 +81,7 @@ describe('The params module', () => {
     ],
   ];
 
-  tests.map(test => {
+  tests.map((test) => {
     it(`should return books params for the search string: ${test[0]}`, () => {
       actAndAssert(test[0], test[1]);
     });
@@ -90,13 +90,12 @@ describe('The params module', () => {
   const flops: [title: string, search: string, error: ParamsError][] = [
     [
       'should return "no groups found" error if there are no regex matches',
-      '',
-      { msg: "no groups found", err: '' },
+      "",
+      { msg: "no groups found", err: "" },
     ],
-
   ];
 
-  flops.map(flop => {
+  flops.map((flop) => {
     it(`${flop[0]}`, () => {
       actAndAssert(flop[1], flop[2]);
     });
@@ -110,7 +109,7 @@ function actAndAssert(search: string, expected: PartsWrapped | ParamsError) {
   pipe(
     search,
     getParams,
-    map(result => expect(result).toEqual(expected)),
-    mapLeft(err => expect(err).toEqual(expected)),
+    map((result) => expect(result).toEqual(expected)),
+    mapLeft((err) => expect(err).toEqual(expected))
   );
 }

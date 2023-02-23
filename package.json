@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node index",
+    "start": "ts-node ./src/index",
     "test": "jest --watch",
     "test:cov": "jest --coverage",
     "test:ci": "jest --ci --reporters='default' --reporters='./.github/reporters/github-actions-reporter'",

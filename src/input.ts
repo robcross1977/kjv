@@ -10,8 +10,24 @@ import { fromPredicate, map, getOrElse } from "fp-ts/Option";
  * want to add a feature or fix a bug, then I wish it was broke up.
  */
 
+/**
+ * Type: InputGroupKeys
+ * This is a list of groups you can expect from the input regex matcher
+ */
+type InputGroupKeys =
+  | "bookNum"
+  | "bookName"
+  | "chapterStart"
+  | "chapterVerseChapterStart"
+  | "chapterVerseVerseStart"
+  | "chapterVerseChapterEnd"
+  | "chapterVerseVerseEnd"
+  | "chapterRangeChapterStart"
+  | "chapterRangeChapterEnd"
+  | "chapterRangeVerseEnd";
+
 // Title
-const bookNum = `(?<bookNum>[1|2|3])`;
+const bookNum = `(?<bookNum>1|2|3|i|ii|iii|1st|2nd|3rd|one|two|three|fst|sec|th|first|second|third)`;
 const bookText = `(?<bookName>\\D+)`;
 const name = `${bookNum}?\\s*${bookText}`;
 
@@ -40,7 +56,7 @@ const chapterRange = wrapNonCap(
 
 // Combined (Captain Planet)
 const params = wrapNonCap(`${chapter}?|${chapterVerse}?|${chapterRange}?`);
-const final = `^\\s*${name}\\s*${params}?\\s*`;
+const inputRegex = `^\\s*${name}\\s*${params}?\\s*`;
 
 /**
  * The wrapNonCap function simply wraps a regex statement inside of a
@@ -61,4 +77,4 @@ function wrapNonCap(internal: string = "") {
   );
 }
 
-export { wrapNonCap, final as inputRegex };
+export { type InputGroupKeys, wrapNonCap, inputRegex };

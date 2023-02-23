@@ -1,124 +1,105 @@
-/**
- * A module for getting books out with shortened versions or aliases
- */
-type BookNames =
-  | "1 Chronicles"
-  | "1 Corinthians"
-  | "1 John"
-  | "1 Kings"
-  | "1 Peter"
-  | "1 Samuel"
-  | "1 Thessalonians"
-  | "1 Timothy"
-  | "2 Chronicles"
-  | "2 Corinthians"
-  | "2 John"
-  | "2 Kings"
-  | "2 Peter"
-  | "2 Samuel"
-  | "2 Thessalonians"
-  | "2 Timothy"
-  | "3 John"
-  | "Acts"
-  | "Amos"
-  | "Colossians"
-  | "Daniel"
-  | "Deuteronomy"
-  | "Ecclesiastes"
-  | "Ephesians"
-  | "Esther"
-  | "Exodus"
-  | "Ezekiel"
-  | "Ezra"
-  | "Galatians"
-  | "Genesis"
-  | "Habakkuk"
-  | "Haggai"
-  | "Hebrews"
-  | "Hosea"
-  | "Isaiah"
-  | "James"
-  | "Jeremiah"
-  | "Job"
-  | "Joel"
-  | "John"
-  | "Jonah"
-  | "Joshua"
-  | "Jude"
-  | "Judges"
-  | "Lamentations"
-  | "Leviticus"
-  | "Luke"
-  | "Malachi"
-  | "Mark"
-  | "Matthew"
-  | "Micah"
-  | "Nahum"
-  | "Nehemiah"
-  | "Numbers"
-  | "Obadiah"
-  | "Philemon"
-  | "Philippians"
-  | "Proverbs"
-  | "Psalms"
-  | "Revelation"
-  | "Romans"
-  | "Ruth"
-  | "Song of Solomon"
-  | "Titus"
-  | "Zechariah"
-  | "Zephaniah";
+import { pipe } from "fp-ts/function";
+import { findFirst } from "fp-ts/Array";
 
-const validBookNums = [
-  "1",
-  "2",
-  "3",
-  "i",
-  "ii",
-  "iii",
-  "1st",
-  "2nd",
-  "3rd",
-  "first",
-  "second",
-  "third",
+const bookNames = [
+  "1 chronicles",
+  "1 corinthians",
+  "1 john",
+  "1 kings",
+  "1 peter",
+  "1 samuel",
+  "1 thessalonians",
+  "1 timothy",
+  "2 chronicles",
+  "2 corinthians",
+  "2 john",
+  "2 kings",
+  "2 peter",
+  "2 samuel",
+  "2 thessalonians",
+  "2 timothy",
+  "3 john",
+  "acts",
+  "amos",
+  "colossians",
+  "daniel",
+  "deuteronomy",
+  "ecclesiastes",
+  "ephesians",
+  "esther",
+  "exodus",
+  "ezekiel",
+  "ezra",
+  "galatians",
+  "genesis",
+  "habakkuk",
+  "haggai",
+  "hebrews",
+  "hosea",
+  "isaiah",
+  "james",
+  "jeremiah",
+  "job",
+  "joel",
+  "john",
+  "jonah",
+  "joshua",
+  "jude",
+  "judges",
+  "lamentations",
+  "leviticus",
+  "luke",
+  "malachi",
+  "mark",
+  "matthew",
+  "micah",
+  "nahum",
+  "nehemiah",
+  "numbers",
+  "obadiah",
+  "philemon",
+  "philippians",
+  "proverbs",
+  "psalms",
+  "revelation",
+  "romans",
+  "ruth",
+  "song of solomon",
+  "titus",
+  "zechariah",
+  "zephaniah",
 ] as const;
+type BookNames = typeof bookNames;
+type ValidBookName = BookNames[number];
 
-type ValidBookNums = typeof validBookNums;
-
-//type BookNums = ValidBookNums[number];
-
-type BookMeta = Record<
-  BookNames,
-  { abbreviations?: string[]; verseCounts: Record<string, number> }
->;
-
-function getValidNameRegex() {
-  return validBookNums.join("|");
+function getFullName(search: string) {
+  return pipe(
+    [...bookNames],
+    findFirst((b) => matchKey([b, search]))
+  );
 }
 
-function verseCountFrom(book: BookNames, chapter: string) {
+type MatchCandidate = [book: ValidBookName, search: string];
+
+function matchKey([book, search]: MatchCandidate): boolean {
+  return new RegExp(bookMeta[book].match, "i").test(search);
+}
+
+type BookMeta = Record<
+  ValidBookName,
+  {
+    match: string;
+    verseCounts: Record<string, number>;
+  }
+>;
+
+function verseCountFrom(book: ValidBookName, chapter: string) {
   return bookMeta[book].verseCounts[chapter];
 }
 
-const bookRegex = `^\\s*(?<bookNum>${getValidNameRegex()})?\\s*(?<bookName>[A-Za-z ]+).?\\s*$`;
-
 const bookMeta: BookMeta = {
-  "1 Chronicles": {
-    abbreviations: [
-      "1 Chr.",
-      "1 Ch.",
-      "1 Chron.",
-      "1 Chr.",
-      "1 Ch.",
-      "I Chron.",
-      "I Chr.",
-      "I Ch.",
-      "1st Chronicles",
-      "1st Chron.",
-      "First Chronicles",
-      "First Chron.",
-    ],
+  "1 chronicles": {
+    match: `^(1|i|1st|one|fst|first)\\s*ch.*$`,
     verseCounts: {
       "1": 54,
       "2": 55,
@@ -151,8 +132,8 @@ const bookMeta: BookMeta = {
       "29": 30,
     },
   },
-  "1 Corinthians": {
-    abbreviations: [],
+  "1 corinthians": {
+    match: `^(1|i|1st|one|fst|first)\\s*co.*$`,
     verseCounts: {
       "1": 31,
       "2": 16,
@@ -172,8 +153,8 @@ const bookMeta: BookMeta = {
       "16": 24,
     },
   },
-  "1 John": {
-    abbreviations: [],
+  "1 john": {
+    match: `^(1|i|1st|one|fst|first)\\s*j.*$`,
     verseCounts: {
       "1": 10,
       "2": 29,
@@ -182,8 +163,8 @@ const bookMeta: BookMeta = {
       "5": 21,
     },
   },
-  "1 Kings": {
-    abbreviations: [],
+  "1 kings": {
+    match: `^(1|i|1st|one|fst|first)\\s*k.*$`,
     verseCounts: {
       "1": 53,
       "2": 46,
@@ -209,8 +190,8 @@ const bookMeta: BookMeta = {
       "22": 53,
     },
   },
-  "1 Peter": {
-    abbreviations: [],
+  "1 peter": {
+    match: `^(1|i|1st|one|fst|first)\\p*j.*$`,
     verseCounts: {
       "1": 25,
       "2": 25,
@@ -219,8 +200,8 @@ const bookMeta: BookMeta = {
       "5": 14,
     },
   },
-  "1 Samuel": {
-    abbreviations: [],
+  "1 samuel": {
+    match: `^(1|i|1st|one|fst|first)\\s*s.*$`,
     verseCounts: {
       "1": 28,
       "2": 36,
@@ -255,8 +236,8 @@ const bookMeta: BookMeta = {
       "31": 13,
     },
   },
-  "1 Thessalonians": {
-    abbreviations: [],
+  "1 thessalonians": {
+    match: `^(1|i|1st|one|fst|first)\\s*th.*$`,
     verseCounts: {
       "1": 10,
       "2": 20,
@@ -265,8 +246,8 @@ const bookMeta: BookMeta = {
       "5": 28,
     },
   },
-  "1 Timothy": {
-    abbreviations: [],
+  "1 timothy": {
+    match: `^(1|i|1st|one|fst|first)\\s*ti.*$`,
     verseCounts: {
       "1": 20,
       "2": 15,
@@ -276,8 +257,8 @@ const bookMeta: BookMeta = {
       "6": 21,
     },
   },
-  "2 Chronicles": {
-    abbreviations: [],
+  "2 chronicles": {
+    match: `^(2|ii|2nd|two|sec|second)\\s*ch.*$`,
     verseCounts: {
       "1": 17,
       "2": 18,
@@ -317,8 +298,8 @@ const bookMeta: BookMeta = {
       "36": 23,
     },
   },
-  "2 Corinthians": {
-    abbreviations: [],
+  "2 corinthians": {
+    match: `^(2|ii|2nd|two|sec|second)\\s*co.*$`,
     verseCounts: {
       "1": 24,
       "2": 17,
@@ -335,14 +316,14 @@ const bookMeta: BookMeta = {
       "13": 14,
     },
   },
-  "2 John": {
-    abbreviations: [],
+  "2 john": {
+    match: `^(2|ii|2nd|two|sec|second)\\s*j.*$`,
     verseCounts: {
       "1": 13,
     },
   },
-  "2 Kings": {
-    abbreviations: [],
+  "2 kings": {
+    match: `^(2|ii|2nd|two|sec|second)\\s*k.*$`,
     verseCounts: {
       "1": 18,
       "2": 25,
@@ -371,16 +352,16 @@ const bookMeta: BookMeta = {
       "25": 30,
     },
   },
-  "2 Peter": {
-    abbreviations: [],
+  "2 peter": {
+    match: `^(2|ii|2nd|two|sec|second)\\s*p.*$`,
     verseCounts: {
       "1": 21,
       "2": 22,
       "3": 18,
     },
   },
-  "2 Samuel": {
-    abbreviations: [],
+  "2 samuel": {
+    match: `^(2|ii|2nd|two|sec|second)\\s*s.*$`,
     verseCounts: {
       "1": 27,
       "2": 32,
@@ -408,16 +389,16 @@ const bookMeta: BookMeta = {
       "24": 25,
     },
   },
-  "2 Thessalonians": {
-    abbreviations: [],
+  "2 thessalonians": {
+    match: `^(2|ii|2nd|two|sec|second)\\s*th.*$`,
     verseCounts: {
       "1": 12,
       "2": 17,
       "3": 18,
     },
   },
-  "2 Timothy": {
-    abbreviations: [],
+  "2 timothy": {
+    match: `^(2|ii|2nd|two|sec|second)\\s*ti.*$`,
     verseCounts: {
       "1": 18,
       "2": 26,
@@ -425,14 +406,14 @@ const bookMeta: BookMeta = {
       "4": 22,
     },
   },
-  "3 John": {
-    abbreviations: [],
+  "3 john": {
+    match: `^(3|iii|3rd|three|thr)\\s*j.*$`,
     verseCounts: {
       "1": 14,
     },
   },
-  Acts: {
-    abbreviations: [],
+  acts: {
+    match: `^ac.*$`,
     verseCounts: {
       "1": 26,
       "2": 47,
@@ -464,8 +445,8 @@ const bookMeta: BookMeta = {
       "28": 31,
     },
   },
-  Amos: {
-    abbreviations: [],
+  amos: {
+    match: `^am.*$`,
     verseCounts: {
       "1": 15,
       "2": 16,
@@ -478,8 +459,8 @@ const bookMeta: BookMeta = {
       "9": 15,
     },
   },
-  Colossians: {
-    abbreviations: [],
+  colossians: {
+    match: `^c.*$`,
     verseCounts: {
       "1": 29,
       "2": 23,
@@ -487,8 +468,8 @@ const bookMeta: BookMeta = {
       "4": 18,
     },
   },
-  Daniel: {
-    abbreviations: [],
+  daniel: {
+    match: `^da.*$`,
     verseCounts: {
       "1": 21,
       "2": 49,
@@ -504,8 +485,8 @@ const bookMeta: BookMeta = {
       "12": 13,
     },
   },
-  Deuteronomy: {
-    abbreviations: [],
+  deuteronomy: {
+    match: `^d[e|u].*$`,
     verseCounts: {
       "1": 46,
       "2": 37,
@@ -543,8 +524,8 @@ const bookMeta: BookMeta = {
       "34": 12,
     },
   },
-  Ecclesiastes: {
-    abbreviations: [],
+  ecclesiastes: {
+    match: `^ec.*$`,
     verseCounts: {
       "1": 18,
       "2": 26,
@@ -560,8 +541,8 @@ const bookMeta: BookMeta = {
       "12": 14,
     },
   },
-  Ephesians: {
-    abbreviations: [],
+  ephesians: {
+    match: `^ep.*$`,
     verseCounts: {
       "1": 23,
       "2": 22,
@@ -571,8 +552,8 @@ const bookMeta: BookMeta = {
       "6": 24,
     },
   },
-  Esther: {
-    abbreviations: [],
+  esther: {
+    match: `^es.*$`,
     verseCounts: {
       "1": 22,
       "2": 23,
@@ -586,8 +567,8 @@ const bookMeta: BookMeta = {
       "10": 3,
     },
   },
-  Exodus: {
-    abbreviations: [],
+  exodus: {
+    match: `^ex.*$`,
     verseCounts: {
       "1": 22,
       "2": 25,
@@ -631,8 +612,8 @@ const bookMeta: BookMeta = {
       "40": 38,
     },
   },
-  Ezekiel: {
-    abbreviations: [],
+  ezekiel: {
+    match: `^ez[e|u].*$`,
     verseCounts: {
       "1": 28,
       "2": 10,
@@ -684,8 +665,8 @@ const bookMeta: BookMeta = {
       "48": 35,
     },
   },
-  Ezra: {
-    abbreviations: [],
+  ezra: {
+    match: `^ezr.*$`,
     verseCounts: {
       "1": 11,
       "2": 70,
@@ -699,8 +680,8 @@ const bookMeta: BookMeta = {
       "10": 44,
     },
   },
-  Galatians: {
-    abbreviations: [],
+  galatians: {
+    match: `^ga.*$`,
     verseCounts: {
       "1": 24,
       "2": 21,
@@ -710,8 +691,8 @@ const bookMeta: BookMeta = {
       "6": 18,
     },
   },
-  Genesis: {
-    abbreviations: [],
+  genesis: {
+    match: `^ge.*$`,
     verseCounts: {
       "1": 31,
       "2": 25,
@@ -765,23 +746,23 @@ const bookMeta: BookMeta = {
       "50": 26,
     },
   },
-  Habakkuk: {
-    abbreviations: [],
+  habakkuk: {
+    match: `^hab.*$`,
     verseCounts: {
       "1": 17,
       "2": 20,
       "3": 19,
     },
   },
-  Haggai: {
-    abbreviations: [],
+  haggai: {
+    match: `^hag.*$`,
     verseCounts: {
       "1": 15,
       "2": 23,
     },
   },
-  Hebrews: {
-    abbreviations: [],
+  hebrews: {
+    match: `^he.*$`,
     verseCounts: {
       "1": 14,
       "2": 18,
@@ -798,8 +779,8 @@ const bookMeta: BookMeta = {
       "13": 25,
     },
   },
-  Hosea: {
-    abbreviations: [],
+  hosea: {
+    match: `^ho.*$`,
     verseCounts: {
       "1": 11,
       "2": 23,
@@ -817,8 +798,8 @@ const bookMeta: BookMeta = {
       "14": 9,
     },
   },
-  Isaiah: {
-    abbreviations: [],
+  isaiah: {
+    match: `^i.*$`,
     verseCounts: {
       "1": 31,
       "2": 22,
@@ -888,8 +869,8 @@ const bookMeta: BookMeta = {
       "66": 24,
     },
   },
-  James: {
-    abbreviations: [],
+  james: {
+    match: `^ja.*$`,
     verseCounts: {
       1: 27,
       2: 26,
@@ -898,8 +879,8 @@ const bookMeta: BookMeta = {
       5: 20,
     },
   },
-  Jeremiah: {
-    abbreviations: [],
+  jeremiah: {
+    match: `^je.*$`,
     verseCounts: {
       "1": 19,
       "2": 37,
@@ -955,8 +936,8 @@ const bookMeta: BookMeta = {
       "52": 34,
     },
   },
-  Job: {
-    abbreviations: [],
+  job: {
+    match: `^job.*$`,
     verseCounts: {
       "1": 22,
       "2": 13,
@@ -1002,16 +983,16 @@ const bookMeta: BookMeta = {
       "42": 17,
     },
   },
-  Joel: {
-    abbreviations: [],
+  joel: {
+    match: `^joe.*$`,
     verseCounts: {
       "1": 20,
       "2": 32,
       "3": 21,
     },
   },
-  John: {
-    abbreviations: [],
+  john: {
+    match: `^joh.*$`,
     verseCounts: {
       "1": 51,
       "2": 25,
@@ -1036,8 +1017,8 @@ const bookMeta: BookMeta = {
       "21": 25,
     },
   },
-  Jonah: {
-    abbreviations: [],
+  jonah: {
+    match: `^jon.*$`,
     verseCounts: {
       "1": 17,
       "2": 10,
@@ -1045,8 +1026,8 @@ const bookMeta: BookMeta = {
       "4": 11,
     },
   },
-  Joshua: {
-    abbreviations: [],
+  joshua: {
+    match: `^jos.*$`,
     verseCounts: {
       "1": 18,
       "2": 24,
@@ -1074,14 +1055,14 @@ const bookMeta: BookMeta = {
       "24": 33,
     },
   },
-  Jude: {
-    abbreviations: [],
+  jude: {
+    match: `^jude$`,
     verseCounts: {
       "1": 25,
     },
   },
-  Judges: {
-    abbreviations: [],
+  judges: {
+    match: `^judg.*$`,
     verseCounts: {
       "1": 36,
       "2": 23,
@@ -1106,8 +1087,8 @@ const bookMeta: BookMeta = {
       "21": 25,
     },
   },
-  Lamentations: {
-    abbreviations: [],
+  lamentations: {
+    match: `^la.*$`,
     verseCounts: {
       "1": 22,
       "2": 22,
@@ -1116,8 +1097,8 @@ const bookMeta: BookMeta = {
       "5": 22,
     },
   },
-  Leviticus: {
-    abbreviations: [],
+  leviticus: {
+    match: `^le.*$`,
     verseCounts: {
       "1": 17,
       "2": 16,
@@ -1148,8 +1129,8 @@ const bookMeta: BookMeta = {
       "27": 34,
     },
   },
-  Luke: {
-    abbreviations: [],
+  luke: {
+    match: `^lu.*$`,
     verseCounts: {
       "1": 80,
       "2": 52,
@@ -1177,8 +1158,8 @@ const bookMeta: BookMeta = {
       "24": 53,
     },
   },
-  Malachi: {
-    abbreviations: [],
+  malachi: {
+    match: `^mal.*$`,
     verseCounts: {
       "1": 14,
       "2": 17,
@@ -1186,8 +1167,8 @@ const bookMeta: BookMeta = {
       "4": 6,
     },
   },
-  Mark: {
-    abbreviations: [],
+  mark: {
+    match: `^mar.*$`,
     verseCounts: {
       "1": 45,
       "2": 28,
@@ -1207,8 +1188,8 @@ const bookMeta: BookMeta = {
       "16": 20,
     },
   },
-  Matthew: {
-    abbreviations: [],
+  matthew: {
+    match: `^mat.*$`,
     verseCounts: {
       "1": 25,
       "2": 23,
@@ -1240,8 +1221,8 @@ const bookMeta: BookMeta = {
       "28": 20,
     },
   },
-  Micah: {
-    abbreviations: [],
+  micah: {
+    match: `^mi.*$`,
     verseCounts: {
       "1": 16,
       "2": 13,
@@ -1252,16 +1233,16 @@ const bookMeta: BookMeta = {
       "7": 20,
     },
   },
-  Nahum: {
-    abbreviations: [],
+  nahum: {
+    match: `^na.*$`,
     verseCounts: {
       "1": 15,
       "2": 13,
       "3": 19,
     },
   },
-  Nehemiah: {
-    abbreviations: [],
+  nehemiah: {
+    match: `^ne.*$`,
     verseCounts: {
       "1": 11,
       "2": 20,
@@ -1278,8 +1259,8 @@ const bookMeta: BookMeta = {
       "13": 31,
     },
   },
-  Numbers: {
-    abbreviations: [],
+  numbers: {
+    match: `^nu.*$`,
     verseCounts: {
       "1": 54,
       "2": 34,
@@ -1319,20 +1300,20 @@ const bookMeta: BookMeta = {
       "36": 13,
     },
   },
-  Obadiah: {
-    abbreviations: [],
+  obadiah: {
+    match: `^o.*$`,
     verseCounts: {
       "1": 21,
     },
   },
-  Philemon: {
-    abbreviations: [],
+  philemon: {
+    match: `^phile.*$`,
     verseCounts: {
       "1": 25,
     },
   },
-  Philippians: {
-    abbreviations: [],
+  philippians: {
+    match: `^phili.*$`,
     verseCounts: {
       "1": 30,
       "2": 30,
@@ -1340,8 +1321,8 @@ const bookMeta: BookMeta = {
       "4": 23,
     },
   },
-  Proverbs: {
-    abbreviations: [],
+  proverbs: {
+    match: `^pr.*$`,
     verseCounts: {
       "1": 33,
       "2": 22,
@@ -1376,8 +1357,8 @@ const bookMeta: BookMeta = {
       "31": 31,
     },
   },
-  Psalms: {
-    abbreviations: [],
+  psalms: {
+    match: `^ps.*$`,
     verseCounts: {
       "1": 6,
       "2": 12,
@@ -1531,8 +1512,8 @@ const bookMeta: BookMeta = {
       "150": 6,
     },
   },
-  Revelation: {
-    abbreviations: [],
+  revelation: {
+    match: `^re.*$`,
     verseCounts: {
       "1": 20,
       "2": 29,
@@ -1558,8 +1539,8 @@ const bookMeta: BookMeta = {
       "22": 21,
     },
   },
-  Romans: {
-    abbreviations: [],
+  romans: {
+    match: `^ro.*$`,
     verseCounts: {
       "1": 32,
       "2": 29,
@@ -1579,8 +1560,8 @@ const bookMeta: BookMeta = {
       "16": 27,
     },
   },
-  Ruth: {
-    abbreviations: [],
+  ruth: {
+    match: `^ru.*$`,
     verseCounts: {
       "1": 22,
       "2": 23,
@@ -1588,8 +1569,8 @@ const bookMeta: BookMeta = {
       "4": 22,
     },
   },
-  "Song of Solomon": {
-    abbreviations: [],
+  "song of solomon": {
+    match: `^s.*$`,
     verseCounts: {
       "1": 17,
       "2": 17,
@@ -1601,16 +1582,16 @@ const bookMeta: BookMeta = {
       "8": 14,
     },
   },
-  Titus: {
-    abbreviations: [],
+  titus: {
+    match: `^ti.*$`,
     verseCounts: {
       "1": 16,
       "2": 15,
       "3": 15,
     },
   },
-  Zechariah: {
-    abbreviations: [],
+  zechariah: {
+    match: `^zec.*$`,
     verseCounts: {
       "1": 21,
       "2": 13,
@@ -1628,8 +1609,8 @@ const bookMeta: BookMeta = {
       "14": 21,
     },
   },
-  Zephaniah: {
-    abbreviations: [],
+  zephaniah: {
+    match: `^zep.*$`,
     verseCounts: {
       "1": 18,
       "2": 15,
@@ -1638,4 +1619,4 @@ const bookMeta: BookMeta = {
   },
 };
 
-export { type BookNames, verseCountFrom };
+export { verseCountFrom, getFullName };
