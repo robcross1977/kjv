@@ -97,9 +97,15 @@ function verseCountFrom(book: ValidBookName, chapter: string) {
   return bookMeta[book].verseCounts[chapter];
 }
 
+const ones = `1(st)?|i\\s+|one|fst|fir(s(t)?)?` as const;
+const twos = `2(nd)?|ii\\s+|two|sec(o(n(d)?)?)?` as const;
+const threes = `3(rd)?|iii\\s+|th((r(e(e)?)?)?|(i(r(d)?)?)?)?` as const;
+
+const nonBookCharacters = `[\\d|:|-|_|\\s]`;
+
 const bookMeta: BookMeta = {
   "1 chronicles": {
-    match: `^(1|i|1st|one|fst|first)\\s*ch.*$`,
+    match: `^(${ones})\\s*ch(r(o(n(i(c(l(e(s)?)?)?)?)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 54,
       "2": 55,
@@ -133,7 +139,7 @@ const bookMeta: BookMeta = {
     },
   },
   "1 corinthians": {
-    match: `^(1|i|1st|one|fst|first)\\s*co.*$`,
+    match: `^(${ones})\\s*co(r(i(n(t(h(i(a(n(s)?)?)?)?)?)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 31,
       "2": 16,
@@ -154,7 +160,7 @@ const bookMeta: BookMeta = {
     },
   },
   "1 john": {
-    match: `^(1|i|1st|one|fst|first)\\s*j.*$`,
+    match: `^(${ones})\\s*j(o(h(n)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 10,
       "2": 29,
@@ -164,7 +170,7 @@ const bookMeta: BookMeta = {
     },
   },
   "1 kings": {
-    match: `^(1|i|1st|one|fst|first)\\s*k.*$`,
+    match: `^(${ones})\\s*k(i(n(g(s)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 53,
       "2": 46,
@@ -191,7 +197,7 @@ const bookMeta: BookMeta = {
     },
   },
   "1 peter": {
-    match: `^(1|i|1st|one|fst|first)\\p*j.*$`,
+    match: `^(${ones})\\s*p(e(t(e(r)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 25,
       "2": 25,
@@ -201,7 +207,7 @@ const bookMeta: BookMeta = {
     },
   },
   "1 samuel": {
-    match: `^(1|i|1st|one|fst|first)\\s*s.*$`,
+    match: `^(${ones})\\s*sam(u(e(l)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 28,
       "2": 36,
@@ -237,7 +243,7 @@ const bookMeta: BookMeta = {
     },
   },
   "1 thessalonians": {
-    match: `^(1|i|1st|one|fst|first)\\s*th.*$`,
+    match: `^(${ones})\\s*th(e(s(s(a(l(o(n(i(a(n(s)?)?)?)?)?)?)?)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 10,
       "2": 20,
@@ -247,7 +253,7 @@ const bookMeta: BookMeta = {
     },
   },
   "1 timothy": {
-    match: `^(1|i|1st|one|fst|first)\\s*ti.*$`,
+    match: `^(${ones})\\s*ti(m(o(t(h(y)?)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 20,
       "2": 15,
@@ -258,7 +264,7 @@ const bookMeta: BookMeta = {
     },
   },
   "2 chronicles": {
-    match: `^(2|ii|2nd|two|sec|second)\\s*ch.*$`,
+    match: `^(${twos})\\s*ch(r(o(n(i(c(l(e(s)?)?)?)?)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 17,
       "2": 18,
@@ -299,7 +305,7 @@ const bookMeta: BookMeta = {
     },
   },
   "2 corinthians": {
-    match: `^(2|ii|2nd|two|sec|second)\\s*co.*$`,
+    match: `^(${twos})\\s*co(r(i(n(t(h(i(a(n(s)?)?)?)?)?)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 24,
       "2": 17,
@@ -317,13 +323,13 @@ const bookMeta: BookMeta = {
     },
   },
   "2 john": {
-    match: `^(2|ii|2nd|two|sec|second)\\s*j.*$`,
+    match: `^(${twos})\\s*j(o(h(n)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 13,
     },
   },
   "2 kings": {
-    match: `^(2|ii|2nd|two|sec|second)\\s*k.*$`,
+    match: `^(${twos})\\s*k(i(n(g(s)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 18,
       "2": 25,
@@ -353,7 +359,7 @@ const bookMeta: BookMeta = {
     },
   },
   "2 peter": {
-    match: `^(2|ii|2nd|two|sec|second)\\s*p.*$`,
+    match: `^(${twos})\\s*p(e(t(e(r)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 21,
       "2": 22,
@@ -361,7 +367,7 @@ const bookMeta: BookMeta = {
     },
   },
   "2 samuel": {
-    match: `^(2|ii|2nd|two|sec|second)\\s*s.*$`,
+    match: `^(${twos})\\s*s(a(m(u(e(l)?)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 27,
       "2": 32,
@@ -390,7 +396,7 @@ const bookMeta: BookMeta = {
     },
   },
   "2 thessalonians": {
-    match: `^(2|ii|2nd|two|sec|second)\\s*th.*$`,
+    match: `^(${twos})\\s*th(e(s(s(a(l(o(n(i(a(n(s)?)?)?)?)?)?)?)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 12,
       "2": 17,
@@ -398,7 +404,7 @@ const bookMeta: BookMeta = {
     },
   },
   "2 timothy": {
-    match: `^(2|ii|2nd|two|sec|second)\\s*ti.*$`,
+    match: `^(${twos})\\s*ti(m(o(t(h(y)?)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 18,
       "2": 26,
@@ -407,13 +413,13 @@ const bookMeta: BookMeta = {
     },
   },
   "3 john": {
-    match: `^(3|iii|3rd|three|thr)\\s*j.*$`,
+    match: `^(${threes})\\s*j(o(h(n)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 14,
     },
   },
   acts: {
-    match: `^ac.*$`,
+    match: `^ac(t(s)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 26,
       "2": 47,
@@ -446,7 +452,7 @@ const bookMeta: BookMeta = {
     },
   },
   amos: {
-    match: `^am.*$`,
+    match: `^am(o(s)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 15,
       "2": 16,
@@ -460,7 +466,7 @@ const bookMeta: BookMeta = {
     },
   },
   colossians: {
-    match: `^c.*$`,
+    match: `^co(l(o(s(s(i(a(n(s)?)?)?)?)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 29,
       "2": 23,
@@ -469,7 +475,7 @@ const bookMeta: BookMeta = {
     },
   },
   daniel: {
-    match: `^da.*$`,
+    match: `^da(n(i(e(l)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 21,
       "2": 49,
@@ -486,7 +492,7 @@ const bookMeta: BookMeta = {
     },
   },
   deuteronomy: {
-    match: `^d[e|u].*$`,
+    match: `^d[e|u]([e|u](t(e(r(o(n(o(m(y)?)?)?)?)?)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 46,
       "2": 37,
@@ -525,7 +531,7 @@ const bookMeta: BookMeta = {
     },
   },
   ecclesiastes: {
-    match: `^ec.*$`,
+    match: `^ec(c(l(e(s(i(a(s(t(e(s)?)?)?)?)?)?)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 18,
       "2": 26,
@@ -542,7 +548,7 @@ const bookMeta: BookMeta = {
     },
   },
   ephesians: {
-    match: `^ep.*$`,
+    match: `^ep(h(e(s(i(a(n(s)?)?)?)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 23,
       "2": 22,
@@ -553,7 +559,7 @@ const bookMeta: BookMeta = {
     },
   },
   esther: {
-    match: `^es.*$`,
+    match: `^es(t(h(e(r)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 22,
       "2": 23,
@@ -568,7 +574,7 @@ const bookMeta: BookMeta = {
     },
   },
   exodus: {
-    match: `^ex.*$`,
+    match: `^ex(o(d(u(s)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 22,
       "2": 25,
@@ -613,7 +619,7 @@ const bookMeta: BookMeta = {
     },
   },
   ezekiel: {
-    match: `^ez[e|u].*$`,
+    match: `^eze(k(i(e(l)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 28,
       "2": 10,
@@ -666,7 +672,7 @@ const bookMeta: BookMeta = {
     },
   },
   ezra: {
-    match: `^ezr.*$`,
+    match: `^ezr(a)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 11,
       "2": 70,
@@ -681,7 +687,7 @@ const bookMeta: BookMeta = {
     },
   },
   galatians: {
-    match: `^ga.*$`,
+    match: `^ga(l(a(t(i(a(n(s)?)?)?)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 24,
       "2": 21,
@@ -692,7 +698,7 @@ const bookMeta: BookMeta = {
     },
   },
   genesis: {
-    match: `^ge.*$`,
+    match: `^ge(n(e(s(i(s)?)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 31,
       "2": 25,
@@ -747,7 +753,7 @@ const bookMeta: BookMeta = {
     },
   },
   habakkuk: {
-    match: `^hab.*$`,
+    match: `^hab(a(k(k(u(k)?)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 17,
       "2": 20,
@@ -755,14 +761,14 @@ const bookMeta: BookMeta = {
     },
   },
   haggai: {
-    match: `^hag.*$`,
+    match: `^hag(g(a(i)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 15,
       "2": 23,
     },
   },
   hebrews: {
-    match: `^he.*$`,
+    match: `^he(b(r(e(w(s)?)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 14,
       "2": 18,
@@ -780,7 +786,7 @@ const bookMeta: BookMeta = {
     },
   },
   hosea: {
-    match: `^ho.*$`,
+    match: `^ho(s(e(a)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 11,
       "2": 23,
@@ -799,7 +805,7 @@ const bookMeta: BookMeta = {
     },
   },
   isaiah: {
-    match: `^i.*$`,
+    match: `^is(a(i(a(h)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 31,
       "2": 22,
@@ -870,7 +876,7 @@ const bookMeta: BookMeta = {
     },
   },
   james: {
-    match: `^ja.*$`,
+    match: `^ja(m(e(s)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       1: 27,
       2: 26,
@@ -880,7 +886,7 @@ const bookMeta: BookMeta = {
     },
   },
   jeremiah: {
-    match: `^je.*$`,
+    match: `^je(r(e(m(i(a(h)?)?)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 19,
       "2": 37,
@@ -937,7 +943,7 @@ const bookMeta: BookMeta = {
     },
   },
   job: {
-    match: `^job.*$`,
+    match: `^job${nonBookCharacters}*$`,
     verseCounts: {
       "1": 22,
       "2": 13,
@@ -984,7 +990,7 @@ const bookMeta: BookMeta = {
     },
   },
   joel: {
-    match: `^joe.*$`,
+    match: `^joe(l)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 20,
       "2": 32,
@@ -992,7 +998,7 @@ const bookMeta: BookMeta = {
     },
   },
   john: {
-    match: `^joh.*$`,
+    match: `^joh(n)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 51,
       "2": 25,
@@ -1018,7 +1024,7 @@ const bookMeta: BookMeta = {
     },
   },
   jonah: {
-    match: `^jon.*$`,
+    match: `^jon(a(h)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 17,
       "2": 10,
@@ -1027,7 +1033,7 @@ const bookMeta: BookMeta = {
     },
   },
   joshua: {
-    match: `^jos.*$`,
+    match: `^jos(h(u(a)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 18,
       "2": 24,
@@ -1056,13 +1062,13 @@ const bookMeta: BookMeta = {
     },
   },
   jude: {
-    match: `^jude$`,
+    match: `^jude${nonBookCharacters}*$`,
     verseCounts: {
       "1": 25,
     },
   },
   judges: {
-    match: `^judg.*$`,
+    match: `^judg(e(s)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 36,
       "2": 23,
@@ -1088,7 +1094,7 @@ const bookMeta: BookMeta = {
     },
   },
   lamentations: {
-    match: `^la.*$`,
+    match: `^la(m(e(n(t(a(t(i(o(n(s)?)?)?)?)?)?)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 22,
       "2": 22,
@@ -1098,7 +1104,7 @@ const bookMeta: BookMeta = {
     },
   },
   leviticus: {
-    match: `^le.*$`,
+    match: `^le(v(i(t(i(c(u(s)?)?)?)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 17,
       "2": 16,
@@ -1130,7 +1136,7 @@ const bookMeta: BookMeta = {
     },
   },
   luke: {
-    match: `^lu.*$`,
+    match: `^lu(k(e)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 80,
       "2": 52,
@@ -1159,7 +1165,7 @@ const bookMeta: BookMeta = {
     },
   },
   malachi: {
-    match: `^mal.*$`,
+    match: `^mal(a(c(h(i)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 14,
       "2": 17,
@@ -1168,7 +1174,7 @@ const bookMeta: BookMeta = {
     },
   },
   mark: {
-    match: `^mar.*$`,
+    match: `^mar(k)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 45,
       "2": 28,
@@ -1189,7 +1195,7 @@ const bookMeta: BookMeta = {
     },
   },
   matthew: {
-    match: `^mat.*$`,
+    match: `^mat(t(h(e(w)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 25,
       "2": 23,
@@ -1222,7 +1228,7 @@ const bookMeta: BookMeta = {
     },
   },
   micah: {
-    match: `^mi.*$`,
+    match: `^mi(c(a(h)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 16,
       "2": 13,
@@ -1234,7 +1240,7 @@ const bookMeta: BookMeta = {
     },
   },
   nahum: {
-    match: `^na.*$`,
+    match: `^na(h(u(m)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 15,
       "2": 13,
@@ -1242,7 +1248,7 @@ const bookMeta: BookMeta = {
     },
   },
   nehemiah: {
-    match: `^ne.*$`,
+    match: `^ne(h(e(m(i(a(h)?)?)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 11,
       "2": 20,
@@ -1260,7 +1266,7 @@ const bookMeta: BookMeta = {
     },
   },
   numbers: {
-    match: `^nu.*$`,
+    match: `^nu(m(b(e(r(s)?)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 54,
       "2": 34,
@@ -1301,19 +1307,19 @@ const bookMeta: BookMeta = {
     },
   },
   obadiah: {
-    match: `^o.*$`,
+    match: `^o(b(a(d(i(a(h)?)?)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 21,
     },
   },
   philemon: {
-    match: `^phile.*$`,
+    match: `^phile(m(o(n)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 25,
     },
   },
   philippians: {
-    match: `^phili.*$`,
+    match: `^phili(p(p(i(a(n(s)?)?)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 30,
       "2": 30,
@@ -1322,7 +1328,7 @@ const bookMeta: BookMeta = {
     },
   },
   proverbs: {
-    match: `^pr.*$`,
+    match: `^pr(o(v(e(r(b(s)?)?)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 33,
       "2": 22,
@@ -1358,7 +1364,7 @@ const bookMeta: BookMeta = {
     },
   },
   psalms: {
-    match: `^ps.*$`,
+    match: `^ps(a(l(m(s)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 6,
       "2": 12,
@@ -1513,7 +1519,7 @@ const bookMeta: BookMeta = {
     },
   },
   revelation: {
-    match: `^re.*$`,
+    match: `^re(v(e(l(a(t(i(o(n)?)?)?)?)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 20,
       "2": 29,
@@ -1540,7 +1546,7 @@ const bookMeta: BookMeta = {
     },
   },
   romans: {
-    match: `^ro.*$`,
+    match: `^ro(m(a(n(s)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 32,
       "2": 29,
@@ -1561,7 +1567,7 @@ const bookMeta: BookMeta = {
     },
   },
   ruth: {
-    match: `^ru.*$`,
+    match: `^ru(t(h)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 22,
       "2": 23,
@@ -1570,7 +1576,7 @@ const bookMeta: BookMeta = {
     },
   },
   "song of solomon": {
-    match: `^s.*$`,
+    match: `^s(o(n(g\\s*(o(f\\s*(s(o(l(o(m(o(n)?)?)?)?)?)?)?)?)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 17,
       "2": 17,
@@ -1583,7 +1589,7 @@ const bookMeta: BookMeta = {
     },
   },
   titus: {
-    match: `^ti.*$`,
+    match: `^ti(t(u(s)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 16,
       "2": 15,
@@ -1591,7 +1597,7 @@ const bookMeta: BookMeta = {
     },
   },
   zechariah: {
-    match: `^zec.*$`,
+    match: `^zec(h(a(r(i(a(h)?)?)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 21,
       "2": 13,
@@ -1610,7 +1616,7 @@ const bookMeta: BookMeta = {
     },
   },
   zephaniah: {
-    match: `^zep.*$`,
+    match: `^zep(h(a(n(i(a(h)?)?)?)?)?)?${nonBookCharacters}*$`,
     verseCounts: {
       "1": 18,
       "2": 15,
@@ -1619,4 +1625,4 @@ const bookMeta: BookMeta = {
   },
 };
 
-export { verseCountFrom, getFullName };
+export { ones, twos, threes, bookNames, verseCountFrom, getFullName };

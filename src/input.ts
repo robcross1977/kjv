@@ -1,5 +1,6 @@
 import { pipe } from "fp-ts/function";
 import { fromPredicate, map, getOrElse } from "fp-ts/Option";
+import { ones, twos, threes } from "./book";
 
 /**
  * The Input module exists because it is easier for me to work
@@ -27,7 +28,7 @@ type InputGroupKeys =
   | "chapterRangeVerseEnd";
 
 // Title
-const bookNum = `(?<bookNum>1|2|3|i|ii|iii|1st|2nd|3rd|one|two|three|fst|sec|th|first|second|third)`;
+const bookNum = `(?<bookNum>${ones}|${twos}|${threes})`;
 const bookText = `(?<bookName>\\D+)`;
 const name = `${bookNum}?\\s*${bookText}`;
 

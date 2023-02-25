@@ -1,7 +1,7 @@
 import { Book } from "../../lib/types";
 
 const Exodus: Book = {
-  name: "Exodus",
+  name: "exodus",
   chapters: [
     {
       number: 1,

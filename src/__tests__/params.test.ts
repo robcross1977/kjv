@@ -50,7 +50,7 @@ describe("The params module", () => {
       }),
     ],
     [
-      "1Song of Solomon1:2-  3",
+      "1 Song of Solomon1:2-  3",
       right({
         book: right<ParamsError, string>("1 Song of Solomon"),
         chapterStart: right(1),
@@ -60,7 +60,7 @@ describe("The params module", () => {
       }),
     ],
     [
-      "  1Song of Solomon1:2-  3  :  4  ",
+      "  1 Song of Solomon1:2-  3  :  4  ",
       right({
         book: right<ParamsError, string>("1 Song of Solomon"),
         chapterStart: right(1),

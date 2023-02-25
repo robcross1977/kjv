@@ -25,7 +25,7 @@ type ParamsError = IError<ParamsMsg>;
 function getParams(search: string) {
   return pipe(
     search,
-    getGroups<InputGroupKeys>(inputRegex, "g"),
+    getGroups<InputGroupKeys>(inputRegex, "gi"),
     map(getParts)
   );
 }

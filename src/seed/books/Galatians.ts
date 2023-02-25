@@ -1,7 +1,7 @@
 import { Book } from "../../lib/types";
 
 const Galatians: Book = {
-  name: "Galatians",
+  name: "galatians",
   chapters: [
     {
       number: 1,

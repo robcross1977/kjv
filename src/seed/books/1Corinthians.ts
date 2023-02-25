@@ -1,7 +1,7 @@
 import { Book } from "../../lib/types";
 
 const OneCorinthians: Book = {
-  name: "1 Corinthians",
+  name: "1 corinthians",
   chapters: [
     {
       number: 1,

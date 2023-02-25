@@ -1,7 +1,7 @@
 import { Book } from "../../lib/types";
 
 const Matthew: Book = {
-  name: "Matthew",
+  name: "matthew",
   chapters: [
     {
       number: 1,

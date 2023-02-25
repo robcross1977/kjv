@@ -1,7 +1,7 @@
 import { Book } from "../../lib/types";
 
 const SongOfSolomon: Book = {
-  name: "Song of Solomon",
+  name: "song of solomon",
   chapters: [
     {
       number: 1,
