@@ -1,4 +1,4 @@
-import { getFullName } from "../book";
+import { getBookName } from "../book";
 import { map as arrayMap, reduce } from "fp-ts/Array";
 import { pipe, flow } from "fp-ts/function";
 import { getParams, ParamsError, Parts } from "../params";
@@ -364,7 +364,7 @@ function mapAbbreviations(
 }
 
 const getRawFullName = flow(
-  getFullName,
+  getBookName,
   fromOption(() => "failed to getFullName"),
   getOrElse(() => "failed to get value for book name")
 );
@@ -379,7 +379,7 @@ function exec(search: string, expected: string | ParamsError) {
     pipe(
       search,
       getParams,
-      chain(getName),
+      getName,
       map((result) => expect(result).toEqual(expected)),
       mapLeft((err) => expect(err).toEqual(expected))
     );

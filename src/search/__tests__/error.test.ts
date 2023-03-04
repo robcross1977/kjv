@@ -1,4 +1,4 @@
-import { IError, errorFrom } from "../error";
+import { errorFrom } from "../error";
 
 describe("The error module", () => {
   describe("The errorFrom function", () => {

@@ -9,7 +9,7 @@
     ChapterVerseRange (book, chapterStart, verseStart, chapterEnd, verseEnd)
 */
 
-import { getParams, ParamsError, PartsWrapped } from "../params";
+import { getParams, ParamsError, Parts } from "../params";
 import { Either, left, right, map, mapLeft } from "fp-ts/Either";
 import { pipe } from "fp-ts/lib/function";
 
@@ -18,66 +18,66 @@ function valIsNull(): Either<ParamsError, number> {
 }
 
 describe("The params module", () => {
-  const tests: [search: string, expected: PartsWrapped][] = [
+  const tests: [search: string, expected: Parts][] = [
     [
       "  1   Song   of   Solomon  ",
-      right({
+      {
         book: right<ParamsError, string>("1 Song of Solomon"),
         chapterStart: valIsNull(),
         chapterEnd: valIsNull(),
         verseStart: valIsNull(),
         verseEnd: valIsNull(),
-      }),
+      },
     ],
     [
       "  1   Song   of   Solomon   1  ",
-      right({
+      {
         book: right<ParamsError, string>("1 Song of Solomon"),
         chapterStart: right(1),
         chapterEnd: valIsNull(),
         verseStart: valIsNull(),
         verseEnd: valIsNull(),
-      }),
+      },
     ],
     [
       "  1   Song   of   Solomon   1  :  2  ",
-      right({
+      {
         book: right<ParamsError, string>("1 Song of Solomon"),
         chapterStart: right(1),
         chapterEnd: valIsNull(),
         verseStart: right(2),
         verseEnd: valIsNull(),
-      }),
+      },
     ],
     [
       "1 Song of Solomon1:2-  3",
-      right({
+      {
         book: right<ParamsError, string>("1 Song of Solomon"),
         chapterStart: right(1),
         chapterEnd: valIsNull(),
         verseStart: right(2),
         verseEnd: right(3),
-      }),
+      },
     ],
     [
       "  1 Song of Solomon1:2-  3  :  4  ",
-      right({
+      {
         book: right<ParamsError, string>("1 Song of Solomon"),
         chapterStart: right(1),
         chapterEnd: right(3),
         verseStart: right(2),
         verseEnd: right(4),
-      }),
+      },
     ],
     [
       "  1   Song   of   Solomon   1  -  4  ",
-      right({
+      {
         book: right<ParamsError, string>("1 Song of Solomon"),
         chapterStart: right(1),
         chapterEnd: right(4),
         verseStart: valIsNull(),
         verseEnd: valIsNull(),
-      }),
+      },
     ],
   ];
 
@@ -103,7 +103,7 @@ describe("The params module", () => {
 });
 
 /* Helpers */
-function actAndAssert(search: string, expected: PartsWrapped | ParamsError) {
+function actAndAssert(search: string, expected: Parts | ParamsError) {
   expect.assertions(1);
 
   pipe(

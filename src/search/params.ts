@@ -1,4 +1,4 @@
-import { pipe } from "fp-ts/function";
+import { flow, pipe } from "fp-ts/function";
 import { replace, trim } from "fp-ts/string";
 import { InputGroupKeys, inputRegex } from "./input";
 import {
@@ -9,6 +9,7 @@ import {
   getOrElse,
   of,
   fromOption,
+  chainW,
 } from "fp-ts/Either";
 import { Predicate } from "fp-ts/Predicate";
 import { getGroups } from "./matcher";
@@ -22,13 +23,10 @@ type ParamsMsg =
 
 type ParamsError = IError<ParamsMsg>;
 
-function getParams(search: string) {
-  return pipe(
-    search,
-    getGroups<InputGroupKeys>(inputRegex, "gi"),
-    map(getParts)
-  );
-}
+const getParams = flow(
+  getGroups<InputGroupKeys>(inputRegex, "gi"),
+  chainW((parts) => getParts(parts))
+);
 
 type Parts = {
   book: Either<ParamsError, string>;
@@ -39,6 +37,12 @@ type Parts = {
 };
 
 type PartsWrapped = Either<ParamsError, Parts>;
+
+const buildParam = flow(
+  findFirst((p) => p !== undefined),
+  fromOption(() => errorFrom<ParamsMsg>("value is null or undefined")),
+  map(Number)
+);
 
 function getParts(parts: Record<InputGroupKeys, string>): PartsWrapped {
   const {
@@ -68,7 +72,7 @@ function getParts(parts: Record<InputGroupKeys, string>): PartsWrapped {
 const nonEmptyStringPredicate: Predicate<string> = (v = "") => v.length > 0;
 
 function getFormattedBookName(num: string = "", text: string = "") {
-  return `${getBookNumString(num)}${trimBook(text)}`;
+  return `${getBookNumString(of(num))}${trimBook(text)}`;
 }
 
 function buildBook({
@@ -83,34 +87,17 @@ function buildBook({
   );
 }
 
-function buildParam(
-  candidateParts: (string | undefined)[]
-): Either<ParamsError, number> {
-  return pipe(
-    candidateParts,
-    findFirst((p) => p !== undefined),
-    fromOption(() => errorFrom<ParamsMsg>("value is null or undefined")),
-    map(Number)
-  );
-}
+const trimBook = flow(replace(/\s\s+/g, " "), trim);
 
-function trimBook(name: string) {
-  return pipe(name, replace(/\s\s+/g, " "), trim);
-}
-
-function getBookNumString(bookNum: string) {
-  return pipe(
-    bookNum,
-    of,
-    chain(
-      fromPredicate(nonEmptyStringPredicate, (err) =>
-        errorFrom<ParamsMsg>("string must have at least 1 character", err)
-      )
-    ),
-    map(addSpace),
-    getOrElse(() => "")
-  );
-}
+const getBookNumString = flow(
+  chain(
+    fromPredicate(nonEmptyStringPredicate, (err) =>
+      errorFrom<ParamsMsg>("string must have at least 1 character", err)
+    )
+  ),
+  map(addSpace),
+  getOrElse(() => "")
+);
 
 function addSpace(s: string) {
   return `${s} `;

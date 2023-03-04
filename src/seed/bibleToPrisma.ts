@@ -21,7 +21,7 @@ function createChapters(chapters: Chapter[]) {
       return {
         number: c.number,
         verses: {
-          create: createVerses(c.verses ?? []),
+          create: createVerses(c.verses),
         },
       };
     })

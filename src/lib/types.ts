@@ -1,14 +1,16 @@
-export type Verse = {
+type Verse = {
   number: number;
   text?: string;
 };
 
-export type Chapter = {
+type Chapter = {
   number: number;
-  verses: Array<Verse>;
+  verses: Verse[];
 };
 
-export interface Book {
+interface Book {
   name: string;
-  chapters: Array<Chapter>;
+  chapters: Chapter[];
 }
+
+export { type Book, type Chapter, type Verse };
