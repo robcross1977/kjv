@@ -1,6 +1,6 @@
 import { pipe } from "fp-ts/function";
 import { Parts } from "./params";
-import { isRight, isLeft, fromPredicate, orElse } from "fp-ts/Either";
+import { isRight, isLeft, fromPredicate, orElse, alt } from "fp-ts/Either";
 import { Predicate } from "fp-ts/Predicate";
 import { errorFrom, IError } from "./error";
 
@@ -142,7 +142,7 @@ function getChapter(parts: Parts) {
 
 // Ex: Job 1:2
 function getVerse(parts: Parts) {
-  return wrapSearch(parts, versePredicate, "chapter");
+  return wrapSearch(parts, versePredicate, "verse");
 }
 
 // Ex: Job 1:2-3
@@ -178,4 +178,4 @@ function getSearchParts(parts: Parts) {
   );
 }
 
-export { getSearchParts };
+export { type ChapterMsg, type ChapterError, type SearchType, getSearchParts };
