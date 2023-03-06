@@ -1,5 +1,5 @@
 import { pipe } from "fp-ts/function";
-import { fromPredicate, map, getOrElse } from "fp-ts/Option";
+import * as O from "fp-ts/Option";
 import { ones, twos, threes } from "./book";
 
 /**
@@ -72,9 +72,9 @@ const inputRegex = `^\\s*${name}\\s*${params}?\\s*`;
 function wrapNonCap(internal: string = "") {
   return pipe(
     internal,
-    fromPredicate((i) => i.length > 0),
-    map((i) => `(?:${i})`),
-    getOrElse(() => "")
+    O.fromPredicate((i) => i.length > 0),
+    O.map((i) => `(?:${i})`),
+    O.getOrElse(() => "")
   );
 }
 

@@ -1,5 +1,5 @@
 import { pipe } from "fp-ts/function";
-import { map, mapLeft } from "fp-ts/Either";
+import * as E from "fp-ts/Either";
 import { getGroups } from "../matcher";
 
 describe("The matcher module", () => {
@@ -13,7 +13,7 @@ describe("The matcher module", () => {
       pipe(
         inputToMatch,
         getGroups(inputRegex, "gi"),
-        map((result) => {
+        E.map((result) => {
           expect(result["a"]).toBe(expectedA);
           expect(result["c"]).toBe(expectedB);
         })
@@ -28,7 +28,7 @@ describe("The matcher module", () => {
       pipe(
         inputToMatch,
         getGroups(inputRegex, "gi"),
-        mapLeft((err) => expect(err.msg).toBe(expected))
+        E.mapLeft((err) => expect(err.msg).toBe(expected))
       );
     });
 
@@ -41,7 +41,7 @@ describe("The matcher module", () => {
       pipe(
         inputToMatch,
         getGroups(inputRegex, "gi"),
-        map((result) => {
+        E.map((result) => {
           expect(result["a"]).toBe(expectedA);
           expect(result["c"]).toBe(expectedC);
         })

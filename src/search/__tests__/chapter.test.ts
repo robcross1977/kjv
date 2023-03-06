@@ -6,7 +6,7 @@ import {
 } from "../chapter";
 import { ParamsError, Parts } from "../params";
 import * as A from "fp-ts/Array";
-import { right, left, map } from "fp-ts/Either";
+import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import { errorFrom } from "../error";
 
@@ -21,28 +21,28 @@ describe("The Chapter Module", () => {
     ): Parts {
       return {
         book: bookIsRight
-          ? right("Song of Solomon")
-          : left<ParamsError>({
+          ? E.right("Song of Solomon")
+          : E.left<ParamsError>({
               msg: "value is null or undefined",
             }),
         chapterStart: chapterStartIsRight
-          ? right(1)
-          : left<ParamsError>({
+          ? E.right(1)
+          : E.left<ParamsError>({
               msg: "value is null or undefined",
             }),
         chapterEnd: chapterEndIsRight
-          ? right(2)
-          : left<ParamsError>({
+          ? E.right(2)
+          : E.left<ParamsError>({
               msg: "value is null or undefined",
             }),
         verseStart: verseStartIsRight
-          ? right(3)
-          : left<ParamsError>({
+          ? E.right(3)
+          : E.left<ParamsError>({
               msg: "value is null or undefined",
             }),
         verseEnd: verseEndIsRight
-          ? right(4)
-          : left<ParamsError>({
+          ? E.right(4)
+          : E.left<ParamsError>({
               msg: "value is null or undefined",
             }),
       };
@@ -54,7 +54,7 @@ describe("The Chapter Module", () => {
       pipe(
         parts,
         getSearchParts,
-        map((p) => expect(p.type).toBe(expected))
+        E.map((p) => expect(p.type).toBe(expected))
       );
     }
 
@@ -88,7 +88,7 @@ describe("The Chapter Module", () => {
       ];
 
       const expected = A.makeBy(invalidParts.length, () =>
-        left(errorFrom<ChapterMsg>("invalid search parameters"))
+        E.left(errorFrom<ChapterMsg>("invalid search parameters"))
       );
 
       expect.assertions(1);

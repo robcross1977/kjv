@@ -1,3 +1,8 @@
+import { pipe } from "fp-ts/function";
+import * as S from "fp-ts/string";
+import * as E from "fp-ts/Either";
+import * as RA from "fp-ts/ReadonlyArray";
+
 /**
  * The Search Module
  *
@@ -8,27 +13,29 @@
  */
 
 /**
- * The Split Type
- *
- * A search can use commas to include further chapters/verses.
- *
- * > "Job 1:2, 3, 5" => head is "Job 1:2", tail would be ["3", "5"]
- * > "Job 1,3,5" => head is "Job 1", tail are ["3", "5"]
- */
-type Split = {
-  head: string;
-  tail: string[];
-};
-
-/**
  * The Search Type
  *
  * A single search can include multiple sub-searches separated
- * by the ';' character. NOTE: these sub-searches can further
+ * by the ';' character. These sub-searches can further
  * be whittled down into multiple parts on the ',' character,
  * which is what the Split type holds.
  */
 type Search = {
-  search: string;
-  singles: Split[];
+  original: string;
+  splits: string[];
 };
+
+function searchFrom(search: string) {
+  return pipe(
+    E.Do,
+    E.bind("original", () => pipe(search, S.trim, E.of)),
+    E.bind("splits", ({ original }) => {
+      return pipe(
+        original,
+        S.split(";"),
+        RA.map((s) => pipe(s, S.split(","))),
+        E.of
+      );
+    })
+  );
+}

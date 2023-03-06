@@ -1,6 +1,6 @@
 import { pipe } from "fp-ts/function";
 import { Parts } from "./params";
-import { isRight, isLeft, fromPredicate, orElse } from "fp-ts/Either";
+import * as E from "fp-ts/Either";
 import { Predicate } from "fp-ts/Predicate";
 import { errorFrom, IError } from "./error";
 
@@ -24,11 +24,11 @@ const bookPredicate: Predicate<Parts> = ({
   verseStart,
   verseEnd,
 }: Parts) =>
-  isRight(book) &&
-  isLeft(chapterStart) &&
-  isLeft(chapterEnd) &&
-  isLeft(verseStart) &&
-  isLeft(verseEnd);
+  E.isRight(book) &&
+  E.isLeft(chapterStart) &&
+  E.isLeft(chapterEnd) &&
+  E.isLeft(verseStart) &&
+  E.isLeft(verseEnd);
 
 // Ex: Job 1
 const chapterPredicate: Predicate<Parts> = ({
@@ -38,11 +38,11 @@ const chapterPredicate: Predicate<Parts> = ({
   verseStart,
   verseEnd,
 }: Parts) =>
-  isRight(book) &&
-  isRight(chapterStart) &&
-  isLeft(chapterEnd) &&
-  isLeft(verseStart) &&
-  isLeft(verseEnd);
+  E.isRight(book) &&
+  E.isRight(chapterStart) &&
+  E.isLeft(chapterEnd) &&
+  E.isLeft(verseStart) &&
+  E.isLeft(verseEnd);
 
 // Ex: Job 1:2
 const versePredicate: Predicate<Parts> = ({
@@ -52,11 +52,11 @@ const versePredicate: Predicate<Parts> = ({
   verseStart,
   verseEnd,
 }) =>
-  isRight(book) &&
-  isRight(chapterStart) &&
-  isLeft(chapterEnd) &&
-  isRight(verseStart) &&
-  isLeft(verseEnd);
+  E.isRight(book) &&
+  E.isRight(chapterStart) &&
+  E.isLeft(chapterEnd) &&
+  E.isRight(verseStart) &&
+  E.isLeft(verseEnd);
 
 // Ex: Job 1:2-3
 const verseRangePredicate: Predicate<Parts> = ({
@@ -66,11 +66,11 @@ const verseRangePredicate: Predicate<Parts> = ({
   verseStart,
   verseEnd,
 }) =>
-  isRight(book) &&
-  isRight(chapterStart) &&
-  isLeft(chapterEnd) &&
-  isRight(verseStart) &&
-  isRight(verseEnd);
+  E.isRight(book) &&
+  E.isRight(chapterStart) &&
+  E.isLeft(chapterEnd) &&
+  E.isRight(verseStart) &&
+  E.isRight(verseEnd);
 
 // Ex: Job 1-2
 const chapterRangePredicate: Predicate<Parts> = ({
@@ -80,11 +80,11 @@ const chapterRangePredicate: Predicate<Parts> = ({
   verseStart,
   verseEnd,
 }) =>
-  isRight(book) &&
-  isRight(chapterStart) &&
-  isRight(chapterEnd) &&
-  isLeft(verseStart) &&
-  isLeft(verseEnd);
+  E.isRight(book) &&
+  E.isRight(chapterStart) &&
+  E.isRight(chapterEnd) &&
+  E.isLeft(verseStart) &&
+  E.isLeft(verseEnd);
 
 // Ex. Job 1-2:3
 const multiChapterVersePredicate: Predicate<Parts> = ({
@@ -94,11 +94,11 @@ const multiChapterVersePredicate: Predicate<Parts> = ({
   verseStart,
   verseEnd,
 }) =>
-  isRight(book) &&
-  isRight(chapterStart) &&
-  isRight(chapterEnd) &&
-  isLeft(verseStart) &&
-  isRight(verseEnd);
+  E.isRight(book) &&
+  E.isRight(chapterStart) &&
+  E.isRight(chapterEnd) &&
+  E.isLeft(verseStart) &&
+  E.isRight(verseEnd);
 
 const fullRangePredicate: Predicate<Parts> = ({
   book,
@@ -107,11 +107,11 @@ const fullRangePredicate: Predicate<Parts> = ({
   verseStart,
   verseEnd,
 }: Parts) =>
-  isRight(book) &&
-  isRight(chapterStart) &&
-  isRight(chapterEnd) &&
-  isRight(verseStart) &&
-  isRight(verseEnd);
+  E.isRight(book) &&
+  E.isRight(chapterStart) &&
+  E.isRight(chapterEnd) &&
+  E.isRight(verseStart) &&
+  E.isRight(verseEnd);
 
 function onFalse() {
   return errorFrom<ChapterMsg>("invalid search parameters");
@@ -126,7 +126,7 @@ function wrapSearch(
 ) {
   return pipe(
     Object.assign({}, parts, { type: searchType }),
-    fromPredicate<SearchParts, ChapterError>(pred, onFalse)
+    E.fromPredicate<SearchParts, ChapterError>(pred, onFalse)
   );
 }
 
@@ -169,12 +169,12 @@ function getTypedParts(parts: Parts) {
   return pipe(
     parts,
     getBook,
-    orElse((_) => getChapter(parts)),
-    orElse((_) => getVerse(parts)),
-    orElse((_) => getVerseRange(parts)),
-    orElse((_) => getChapterRange(parts)),
-    orElse((_) => getMultiChapterVerse(parts)),
-    orElse((_) => getFullRange(parts))
+    E.orElse((_) => getChapter(parts)),
+    E.orElse((_) => getVerse(parts)),
+    E.orElse((_) => getVerseRange(parts)),
+    E.orElse((_) => getChapterRange(parts)),
+    E.orElse((_) => getMultiChapterVerse(parts)),
+    E.orElse((_) => getFullRange(parts))
   );
 }
 

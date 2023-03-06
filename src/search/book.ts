@@ -1,6 +1,6 @@
 import { pipe } from "fp-ts/function";
-import { findFirst } from "fp-ts/Array";
-import { toArray } from "fp-ts/ReadonlyArray";
+import * as A from "fp-ts/Array";
+import * as RA from "fp-ts/ReadonlyArray";
 
 const bookNames = [
   "1 chronicles",
@@ -76,8 +76,8 @@ type ValidBookName = BookNames[number];
 function getBookName(search: string) {
   return pipe(
     bookNames,
-    toArray,
-    findFirst((b) => matchKey([b, search]))
+    RA.toArray,
+    A.findFirst((b) => matchKey([b, search]))
   );
 }
 
