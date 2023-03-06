@@ -1,6 +1,6 @@
 import { pipe } from "fp-ts/function";
 import { Parts } from "./params";
-import { isRight, isLeft, fromPredicate, orElse, alt } from "fp-ts/Either";
+import { isRight, isLeft, fromPredicate, orElse } from "fp-ts/Either";
 import { Predicate } from "fp-ts/Predicate";
 import { errorFrom, IError } from "./error";
 
@@ -165,7 +165,7 @@ function getFullRange(parts: Parts) {
   return wrapSearch(parts, fullRangePredicate, "full-range");
 }
 
-function getSearchParts(parts: Parts) {
+function getTypedParts(parts: Parts) {
   return pipe(
     parts,
     getBook,
@@ -178,4 +178,9 @@ function getSearchParts(parts: Parts) {
   );
 }
 
-export { type ChapterMsg, type ChapterError, type SearchType, getSearchParts };
+export {
+  type ChapterMsg,
+  type ChapterError,
+  type SearchType,
+  getTypedParts as getSearchParts,
+};
