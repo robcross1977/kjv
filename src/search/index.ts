@@ -1,9 +1,8 @@
 import { pipe, flow } from "fp-ts/function";
-import { chain, chainW, map, Do, bind, fromOption } from "fp-ts/lib/Either";
+import { chainW, Do, bind, fromOption } from "fp-ts/lib/Either";
 import { getParams } from "./params";
 import { getBookName } from "./book";
 import { errorFrom, IError } from "./error";
-import { MatcherError } from "./matcher";
 
 type SearchMsg = "failed to get final book name";
 

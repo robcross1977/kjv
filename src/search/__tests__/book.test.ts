@@ -1,10 +1,11 @@
-import { getBookName } from "../book";
+import { getBookName, verseCountFrom } from "../book";
 import { map as arrayMap, reduce } from "fp-ts/Array";
 import { pipe, flow } from "fp-ts/function";
 import { getParams, ParamsError, Parts } from "../params";
 import { chain, map, getOrElse, fromOption, mapLeft } from "fp-ts/Either";
 
 const nones: string[] = [""];
+
 const ones = [
   "1",
   "1st",
@@ -76,6 +77,56 @@ const threes = [
 
 describe("The book module", () => {
   describe("The getFullName function", () => {
+    // This is an either in an either so we rewrap it to get to final value we want
+    const getName = flow(chain(fullNameFrom));
+
+    function exec(search: string, expected: string | ParamsError) {
+      it(`should return "${expected}" for the search: "${search}"`, () => {
+        expect.assertions(1);
+
+        pipe(
+          search,
+          getParams,
+          getName,
+          map((result) => expect(result).toEqual(expected)),
+          mapLeft((err) => expect(err).toEqual(expected))
+        );
+      });
+
+      return search;
+    }
+
+    function fullNameFrom({ book }: Parts) {
+      return pipe(book, map(getRawFullName));
+    }
+
+    function mapAbbreviations(
+      mando: string,
+      optional: string,
+      expected: string,
+      bookNums: string[]
+    ) {
+      pipe(
+        bookNums,
+        arrayMap((bn) => {
+          // run the test first with just the mando stuff
+          const start = `${bn}${mando}`;
+          exec(start, expected);
+
+          pipe(
+            optional.split(""),
+            reduce(start, (acc, curr) => exec(`${acc}${curr}`, expected))
+          );
+        })
+      );
+    }
+
+    const getRawFullName = flow(
+      getBookName,
+      fromOption(() => "failed to getFullName"),
+      getOrElse(() => "failed to get value for book name")
+    );
+
     describe("The book of 1 Chronicles", () => {
       mapAbbreviations("ch", "ronicles", "1 chronicles", ones);
     });
@@ -340,54 +391,13 @@ describe("The book module", () => {
       mapAbbreviations("zep", "haniah", "zephaniah", nones);
     });
   });
-});
 
-function mapAbbreviations(
-  mando: string,
-  optional: string,
-  expected: string,
-  bookNums: string[]
-) {
-  pipe(
-    bookNums,
-    arrayMap((bn) => {
-      // run the test first with just the mando stuff
-      const start = `${bn}${mando}`;
-      exec(start, expected);
+  describe("The verseCountFrom function", () => {
+    it("should return the correct number of verses with valid arguments", () => {
+      const expected = 54; // Got this number from book.ts
+      const result = verseCountFrom("1 chronicles", "1");
 
-      pipe(
-        optional.split(""),
-        reduce(start, (acc, curr) => exec(`${acc}${curr}`, expected))
-      );
-    })
-  );
-}
-
-const getRawFullName = flow(
-  getBookName,
-  fromOption(() => "failed to getFullName"),
-  getOrElse(() => "failed to get value for book name")
-);
-
-// This is an either in an either so we rewrap it to get to final value we want
-const getName = flow(chain(fullNameFrom));
-
-function exec(search: string, expected: string | ParamsError) {
-  it(`should return "${expected}" for the search: "${search}"`, () => {
-    expect.assertions(1);
-
-    pipe(
-      search,
-      getParams,
-      getName,
-      map((result) => expect(result).toEqual(expected)),
-      mapLeft((err) => expect(err).toEqual(expected))
-    );
+      expect(result).toBe(expected);
+    });
   });
-
-  return search;
-}
-
-function fullNameFrom({ book }: Parts) {
-  return pipe(book, map(getRawFullName));
-}
+});

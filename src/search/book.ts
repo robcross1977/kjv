@@ -1627,4 +1627,12 @@ const bookMeta: BookMeta = {
   },
 };
 
-export { ones, twos, threes, bookNames, verseCountFrom, getBookName };
+export {
+  type ValidBookName,
+  ones,
+  twos,
+  threes,
+  bookNames,
+  verseCountFrom,
+  getBookName,
+};
