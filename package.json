@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "ts-node ./src/index",
+    "search": "ts-node ./src/search/search",
     "test": "jest --watch",
     "test:cov": "jest --coverage",
     "test:ci": "jest --ci --reporters='default' --reporters='./.github/reporters/github-actions-reporter'",
@@ -15,15 +16,15 @@
   "license": "ISC",
   "dependencies": {
     "@prisma/client": "^4.11.0",
-    "fp-ts": "^2.13.1",
-    "ts-node": "^10.9.1"
+    "fp-ts": "^2.13.1"
   },
   "devDependencies": {
     "@types/jest": "^29.4.0",
     "@types/node": "^18.11.18",
     "jest": "^29.4.1",
     "prisma": "^4.11.0",
-    "ts-jest": "^29.0.5"
+    "ts-jest": "^29.0.5",
+    "ts-node": "^10.9.1"
   },
   "jest": {
     "preset": "ts-jest",

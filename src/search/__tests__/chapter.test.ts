@@ -1,7 +1,7 @@
 import {
   ChapterError,
   ChapterMsg,
-  getSearchParts,
+  getTypedParts,
   SearchType,
 } from "../chapter";
 import { ParamsError, Parts } from "../params";
@@ -53,7 +53,7 @@ describe("The Chapter Module", () => {
 
       pipe(
         parts,
-        getSearchParts,
+        getTypedParts,
         E.map((p) => expect(p.type).toBe(expected))
       );
     }
@@ -93,7 +93,7 @@ describe("The Chapter Module", () => {
 
       expect.assertions(1);
 
-      pipe(invalidParts, A.map(getSearchParts), (parts) =>
+      pipe(invalidParts, A.map(getTypedParts), (parts) =>
         expect(parts).toEqual(expected)
       );
     });

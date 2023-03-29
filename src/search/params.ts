@@ -94,8 +94,4 @@ function addSpace(s: string) {
   return `${s} `;
 }
 
-function splitSearches() {
-  // split searches on ; into search requests
-}
-
 export { type ParamsError, type PartsWrapped, type Parts, getParams };

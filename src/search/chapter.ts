@@ -119,6 +119,9 @@ function onFalse() {
 
 type SearchParts = Parts & { type: SearchType };
 
+// The wrapSearch takes a Parts type, and adds the SearchType
+// to it based on the predicate that works, so we know how
+// to handle it in later sections of the code.
 function wrapSearch(
   parts: Parts,
   pred: Predicate<Parts>,
@@ -165,6 +168,8 @@ function getFullRange(parts: Parts) {
   return wrapSearch(parts, fullRangePredicate, "full-range");
 }
 
+type TypedParts = Parts & { type: SearchType };
+
 function getTypedParts(parts: Parts) {
   return pipe(
     parts,
@@ -182,5 +187,6 @@ export {
   type ChapterMsg,
   type ChapterError,
   type SearchType,
-  getTypedParts as getSearchParts,
+  type TypedParts,
+  getTypedParts,
 };

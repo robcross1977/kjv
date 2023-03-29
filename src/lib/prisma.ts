@@ -20,9 +20,9 @@ if (process.env.NODE_ENV !== "production") {
 
 // Uncomment this batch of code if you want to see the
 // actual queries being run in real-time in the console
-prisma.$on("query", (e) => {
+prisma.$on("query", (q) => {
   if (process.env.NODE_ENV === "development") {
-    console.log(e);
+    console.log(q);
   }
 });
 

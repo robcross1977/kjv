@@ -1,6 +1,9 @@
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
-import { ones, twos, threes } from "./book";
+
+const ones = `1(st)?|i\\s+|one|fst|fir(s(t)?)?` as const;
+const twos = `2(nd)?|ii\\s+|two|sec(o(n(d)?)?)?` as const;
+const threes = `3(rd)?|iii\\s+|th((r(e(e)?)?)?|(i(r(d)?)?)?)?` as const;
 
 /**
  * The Input module exists because it is easier for me to work
