@@ -1,7 +1,7 @@
 import { pipe } from "fp-ts/function";
 import * as S from "fp-ts/string";
 import * as O from "fp-ts/Option";
-import * as RONEA from "fp-ts/ReadonlyNonEmptyArray";
+import * as ROA from "fp-ts/ReadonlyArray";
 import { Predicate } from "fp-ts/lib/Predicate";
 
 /**
@@ -24,7 +24,7 @@ import { Predicate } from "fp-ts/lib/Predicate";
 
 const stringExistsPredicate: Predicate<string> = (s) => s.length > 0;
 
-function getSearch(query: string) {
+function getSearch(query: string = "") {
   return pipe(
     O.Do,
     O.apS("original", getOriginal(query)),
@@ -37,7 +37,14 @@ function getOriginal(query: string) {
 }
 
 function getSearches(query: string) {
-  return pipe(query, S.trim, S.split(";"), RONEA.map(getSubSearches), O.of);
+  return pipe(
+    query,
+    S.trim,
+    S.split(";"),
+    ROA.map(getSubSearches),
+    ROA.compact,
+    O.of
+  );
 }
 
 function getSubSearches(query: string) {
@@ -53,11 +60,13 @@ function getSubOriginal(query: string) {
 }
 
 function getSubSearch(query: string) {
-  return pipe(query, S.split(","), RONEA.map(S.trim), O.of);
+  return pipe(
+    query,
+    S.split(","),
+    ROA.map(S.trim),
+    ROA.filter((s) => s.length > 0),
+    O.of
+  );
 }
 
-(() => {
-  const search = "things,stuff, dude, what;more,moar,moare;huh,what,sutff;;";
-  const result = getSearch(search);
-  console.log(`The result is ${JSON.stringify(result)}`);
-})();
+export { getSearch };
