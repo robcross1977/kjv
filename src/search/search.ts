@@ -2,7 +2,7 @@ import { pipe } from "fp-ts/function";
 import * as S from "fp-ts/string";
 import * as O from "fp-ts/Option";
 import * as ROA from "fp-ts/ReadonlyArray";
-import { Predicate } from "fp-ts/lib/Predicate";
+import { Predicate } from "fp-ts/Predicate";
 
 /**
  * The Search Module

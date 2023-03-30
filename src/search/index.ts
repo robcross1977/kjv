@@ -1,33 +1,25 @@
-import { pipe, flow } from "fp-ts/function";
-import * as E from "fp-ts/lib/Either";
-import { getParams } from "./params";
-import { getBookName } from "./book";
+import { pipe } from "fp-ts/function";
+import * as E from "fp-ts/Either";
 import { errorFrom, IError } from "./error";
+import { getSearch } from "./search";
 
-type SearchMsg = "failed to get final book name";
+type MainMsg = "No search found";
 
-type SearchError = IError<SearchMsg>;
-
-const getBookNameAsEither = flow(
-  getBookName,
-  E.fromOption<SearchError>(() =>
-    errorFrom<SearchMsg>("failed to get final book name")
-  )
-);
-
-function getFinalName(search: string) {
-  return pipe(
-    search,
-    getParams,
-    E.chainW(({ book }) => pipe(book, E.chainW(getBookNameAsEither)))
-  );
-}
+type MainError = IError<MainMsg>;
 
 function search(search: string) {
+  return pipe(E.Do, E.apS("searches", getSearches(search)));
+}
+
+function getSearches(search: string) {
   return pipe(
-    E.Do,
-    E.bind("book", (_) => getFinalName(search))
+    search,
+    getSearch,
+    E.fromOption<MainError>(() => errorFrom<MainMsg>("No search found"))
   );
 }
 
 export { search };
+
+const result = search("Job 1:2; Job 2:3,4; Job 3:5,6,7");
+console.log(JSON.stringify(result, null, 2));
