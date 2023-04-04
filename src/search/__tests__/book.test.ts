@@ -1,8 +1,8 @@
 import { getBookName, verseCountFrom } from "../book";
-import * as A from "fp-ts/Array";
+import { map as aMap, reduce } from "fp-ts/Array";
 import { pipe, flow } from "fp-ts/function";
 import { getParams, ParamsError, Parts } from "../params";
-import * as E from "fp-ts/Either";
+import { map, mapLeft, chain, fromOption, getOrElse } from "fp-ts/Either";
 
 const nones: string[] = [""];
 
@@ -78,7 +78,7 @@ const threes = [
 describe("The book module", () => {
   describe("The getFullName function", () => {
     // This is an either in an either so we rewrap it to get to final value we want
-    const getName = flow(E.chain(fullNameFrom));
+    const getName = flow(chain(fullNameFrom));
 
     function exec(search: string, expected: string | ParamsError) {
       it(`should return "${expected}" for the search: "${search}"`, () => {
@@ -88,8 +88,8 @@ describe("The book module", () => {
           search,
           getParams,
           getName,
-          E.map((result) => expect(result).toEqual(expected)),
-          E.mapLeft((err) => expect(err).toEqual(expected))
+          map((result) => expect(result).toEqual(expected)),
+          mapLeft((err) => expect(err).toEqual(expected))
         );
       });
 
@@ -97,7 +97,7 @@ describe("The book module", () => {
     }
 
     function fullNameFrom({ book }: Parts) {
-      return pipe(book, E.map(getRawFullName));
+      return pipe(book, map(getRawFullName));
     }
 
     function mapAbbreviations(
@@ -108,14 +108,14 @@ describe("The book module", () => {
     ) {
       pipe(
         bookNums,
-        A.map((bn) => {
+        aMap((bn) => {
           // run the test first with just the mando stuff
           const start = `${bn}${mando}`;
           exec(start, expected);
 
           pipe(
             optional.split(""),
-            A.reduce(start, (acc, curr) => exec(`${acc}${curr}`, expected))
+            reduce(start, (acc, curr) => exec(`${acc}${curr}`, expected))
           );
         })
       );
@@ -123,8 +123,8 @@ describe("The book module", () => {
 
     const getRawFullName = flow(
       getBookName,
-      E.fromOption(() => "failed to getFullName"),
-      E.getOrElse(() => "failed to get value for book name")
+      fromOption(() => "failed to getFullName"),
+      getOrElse(() => "failed to get value for book name")
     );
 
     describe("The book of 1 Chronicles", () => {

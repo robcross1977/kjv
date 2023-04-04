@@ -10,11 +10,11 @@
 */
 
 import { getParams, ParamsError, Parts } from "../params";
-import * as E from "fp-ts/Either";
+import { Either, left, right, map, mapLeft } from "fp-ts/Either";
 import { pipe } from "fp-ts/lib/function";
 
-function valIsNull(): E.Either<ParamsError, number> {
-  return E.left({ msg: "value is null or undefined", err: "" });
+function valIsNull(): Either<ParamsError, number> {
+  return left({ msg: "value is null or undefined", err: "" });
 }
 
 describe("The params module", () => {
@@ -22,7 +22,7 @@ describe("The params module", () => {
     [
       "  1   Song   of   Solomon  ",
       {
-        book: E.right<ParamsError, string>("1 Song of Solomon"),
+        book: right<ParamsError, string>("1 Song of Solomon"),
         chapterStart: valIsNull(),
         chapterEnd: valIsNull(),
         verseStart: valIsNull(),
@@ -32,8 +32,8 @@ describe("The params module", () => {
     [
       "  1   Song   of   Solomon   1  ",
       {
-        book: E.right<ParamsError, string>("1 Song of Solomon"),
-        chapterStart: E.right(1),
+        book: right<ParamsError, string>("1 Song of Solomon"),
+        chapterStart: right(1),
         chapterEnd: valIsNull(),
         verseStart: valIsNull(),
         verseEnd: valIsNull(),
@@ -42,39 +42,39 @@ describe("The params module", () => {
     [
       "  1   Song   of   Solomon   1  :  2  ",
       {
-        book: E.right<ParamsError, string>("1 Song of Solomon"),
-        chapterStart: E.right(1),
+        book: right<ParamsError, string>("1 Song of Solomon"),
+        chapterStart: right(1),
         chapterEnd: valIsNull(),
-        verseStart: E.right(2),
+        verseStart: right(2),
         verseEnd: valIsNull(),
       },
     ],
     [
       "1 Song of Solomon1:2-  3",
       {
-        book: E.right<ParamsError, string>("1 Song of Solomon"),
-        chapterStart: E.right(1),
+        book: right<ParamsError, string>("1 Song of Solomon"),
+        chapterStart: right(1),
         chapterEnd: valIsNull(),
-        verseStart: E.right(2),
-        verseEnd: E.right(3),
+        verseStart: right(2),
+        verseEnd: right(3),
       },
     ],
     [
       "  1 Song of Solomon1:2-  3  :  4  ",
       {
-        book: E.right<ParamsError, string>("1 Song of Solomon"),
-        chapterStart: E.right(1),
-        chapterEnd: E.right(3),
-        verseStart: E.right(2),
-        verseEnd: E.right(4),
+        book: right<ParamsError, string>("1 Song of Solomon"),
+        chapterStart: right(1),
+        chapterEnd: right(3),
+        verseStart: right(2),
+        verseEnd: right(4),
       },
     ],
     [
       "  1   Song   of   Solomon   1  -  4  ",
       {
-        book: E.right<ParamsError, string>("1 Song of Solomon"),
-        chapterStart: E.right(1),
-        chapterEnd: E.right(4),
+        book: right<ParamsError, string>("1 Song of Solomon"),
+        chapterStart: right(1),
+        chapterEnd: right(4),
         verseStart: valIsNull(),
         verseEnd: valIsNull(),
       },
@@ -109,7 +109,7 @@ function actAndAssert(search: string, expected: Parts | ParamsError) {
   pipe(
     search,
     getParams,
-    E.map((result) => expect(result).toEqual(expected)),
-    E.mapLeft((err) => expect(err).toEqual(expected))
+    map((result) => expect(result).toEqual(expected)),
+    mapLeft((err) => expect(err).toEqual(expected))
   );
 }

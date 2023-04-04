@@ -5,8 +5,8 @@ import {
   SearchType,
 } from "../chapter";
 import { ParamsError, Parts } from "../params";
-import * as A from "fp-ts/Array";
-import * as E from "fp-ts/Either";
+import { makeBy, map as aMap } from "fp-ts/Array";
+import { left, right, map } from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import { errorFrom } from "../error";
 
@@ -21,28 +21,28 @@ describe("The Chapter Module", () => {
     ): Parts {
       return {
         book: bookIsRight
-          ? E.right("Song of Solomon")
-          : E.left<ParamsError>({
+          ? right("Song of Solomon")
+          : left<ParamsError>({
               msg: "value is null or undefined",
             }),
         chapterStart: chapterStartIsRight
-          ? E.right(1)
-          : E.left<ParamsError>({
+          ? right(1)
+          : left<ParamsError>({
               msg: "value is null or undefined",
             }),
         chapterEnd: chapterEndIsRight
-          ? E.right(2)
-          : E.left<ParamsError>({
+          ? right(2)
+          : left<ParamsError>({
               msg: "value is null or undefined",
             }),
         verseStart: verseStartIsRight
-          ? E.right(3)
-          : E.left<ParamsError>({
+          ? right(3)
+          : left<ParamsError>({
               msg: "value is null or undefined",
             }),
         verseEnd: verseEndIsRight
-          ? E.right(4)
-          : E.left<ParamsError>({
+          ? right(4)
+          : left<ParamsError>({
               msg: "value is null or undefined",
             }),
       };
@@ -54,7 +54,7 @@ describe("The Chapter Module", () => {
       pipe(
         parts,
         getTypedParts,
-        E.map((p) => expect(p.type).toBe(expected))
+        map((p) => expect(p.type).toBe(expected))
       );
     }
 
@@ -87,13 +87,13 @@ describe("The Chapter Module", () => {
         buildPartConfigurations(true, true, true, true, false), // no way to get this in the regex
       ];
 
-      const expected = A.makeBy(invalidParts.length, () =>
-        E.left(errorFrom<ChapterMsg>("invalid search parameters"))
+      const expected = makeBy(invalidParts.length, () =>
+        left(errorFrom<ChapterMsg>("invalid search parameters"))
       );
 
       expect.assertions(1);
 
-      pipe(invalidParts, A.map(getTypedParts), (parts) =>
+      pipe(invalidParts, aMap(getTypedParts), (parts) =>
         expect(parts).toEqual(expected)
       );
     });
