@@ -1,11 +1,20 @@
 import { flow, pipe } from "fp-ts/function";
-import * as S from "fp-ts/string";
+import { replace, trim } from "fp-ts/string";
 import { InputGroupKeys, inputRegex } from "./input";
-import * as E from "fp-ts/Either";
+import {
+  Either,
+  chainW,
+  fromOption,
+  map,
+  of,
+  fromPredicate,
+  chain,
+  getOrElse,
+} from "fp-ts/Either";
 import { Predicate } from "fp-ts/Predicate";
 import { getGroups } from "./matcher";
 import { errorFrom, IError } from "./error";
-import * as A from "fp-ts/Array";
+import { findFirst } from "fp-ts/Array";
 
 type ParamsMsg =
   | "no groups found"
@@ -16,23 +25,23 @@ type ParamsError = IError<ParamsMsg>;
 
 const getParams = flow(
   getGroups<InputGroupKeys>(inputRegex, "gi"),
-  E.chainW((parts) => getParts(parts))
+  chainW((parts) => getParts(parts))
 );
 
 type Parts = {
-  book: E.Either<ParamsError, string>;
-  chapterStart: E.Either<ParamsError, number>;
-  chapterEnd: E.Either<ParamsError, number>;
-  verseStart: E.Either<ParamsError, number>;
-  verseEnd: E.Either<ParamsError, number>;
+  book: Either<ParamsError, string>;
+  chapterStart: Either<ParamsError, number>;
+  chapterEnd: Either<ParamsError, number>;
+  verseStart: Either<ParamsError, number>;
+  verseEnd: Either<ParamsError, number>;
 };
 
-type PartsWrapped = E.Either<ParamsError, Parts>;
+type PartsWrapped = Either<ParamsError, Parts>;
 
 const buildParam = flow(
-  A.findFirst((p) => p !== undefined),
-  E.fromOption(() => errorFrom<ParamsMsg>("value is null or undefined")),
-  E.map(Number)
+  findFirst((p) => p !== undefined),
+  fromOption(() => errorFrom<ParamsMsg>("value is null or undefined")),
+  map(Number)
 );
 
 function getParts(parts: Record<InputGroupKeys, string>): PartsWrapped {
@@ -47,7 +56,7 @@ function getParts(parts: Record<InputGroupKeys, string>): PartsWrapped {
     chapterRangeVerseEnd,
   } = parts;
 
-  return E.of({
+  return of({
     book: buildBook(parts),
     chapterStart: buildParam([
       chapterStart,
@@ -63,31 +72,31 @@ function getParts(parts: Record<InputGroupKeys, string>): PartsWrapped {
 const nonEmptyStringPredicate: Predicate<string> = (v = "") => v.length > 0;
 
 function getFormattedBookName(num: string = "", text: string = "") {
-  return `${getBookNumString(E.of(num))}${trimBook(text)}`;
+  return `${getBookNumString(of(num))}${trimBook(text)}`;
 }
 
 function buildBook({
   bookNum: num = "",
   bookName: text = "",
-}: Record<InputGroupKeys, string>): E.Either<ParamsError, string> {
+}: Record<InputGroupKeys, string>): Either<ParamsError, string> {
   return pipe(
     getFormattedBookName(num, text),
-    E.fromPredicate(nonEmptyStringPredicate, () =>
+    fromPredicate(nonEmptyStringPredicate, () =>
       errorFrom<ParamsMsg>("no groups found")
     )
   );
 }
 
-const trimBook = flow(S.replace(/\s\s+/g, " "), S.trim);
+const trimBook = flow(replace(/\s\s+/g, " "), trim);
 
 const getBookNumString = flow(
-  E.chain(
-    E.fromPredicate(nonEmptyStringPredicate, (err) =>
+  chain(
+    fromPredicate(nonEmptyStringPredicate, (err) =>
       errorFrom<ParamsMsg>("string must have at least 1 character", err)
     )
   ),
-  E.map(addSpace),
-  E.getOrElse(() => "")
+  map(addSpace),
+  getOrElse(() => "")
 );
 
 function addSpace(s: string) {

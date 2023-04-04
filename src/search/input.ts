@@ -1,5 +1,5 @@
 import { pipe } from "fp-ts/function";
-import * as O from "fp-ts/Option";
+import { fromPredicate, map, getOrElse } from "fp-ts/Option";
 
 const ones = `1(st)?|i\\s+|one|fst|fir(s(t)?)?` as const;
 const twos = `2(nd)?|ii\\s+|two|sec(o(n(d)?)?)?` as const;
@@ -75,9 +75,9 @@ const inputRegex = `^\\s*${name}\\s*${params}?\\s*`;
 function wrapNonCap(internal: string = "") {
   return pipe(
     internal,
-    O.fromPredicate((i) => i.length > 0),
-    O.map((i) => `(?:${i})`),
-    O.getOrElse(() => "")
+    fromPredicate((i) => i.length > 0),
+    map((i) => `(?:${i})`),
+    getOrElse(() => "")
   );
 }
 
