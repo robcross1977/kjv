@@ -1,4 +1,4 @@
-import { getBookName, verseCountFrom } from "../book";
+import { getBookName, verseCountFrom } from "../bible-meta";
 import { map as aMap, reduce } from "fp-ts/Array";
 import { pipe, flow } from "fp-ts/function";
 import { getParams, ParamsError, Parts } from "../params";

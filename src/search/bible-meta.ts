@@ -1,5 +1,6 @@
 import { pipe } from "fp-ts/function";
 import { findFirst } from "fp-ts/ReadonlyArray";
+import { nonNameChars, ones, twos, threes } from "./regex";
 
 const bookNames = [
   "1 chronicles",
@@ -85,7 +86,7 @@ function matchKey([book, search]: MatchCandidate): boolean {
   return new RegExp(bookMeta[book].match, "i").test(search);
 }
 
-type BookMeta = Record<
+type BibleMeta = Record<
   ValidBookName,
   {
     match: string;
@@ -93,17 +94,15 @@ type BookMeta = Record<
   }
 >;
 
+function chapterCountFrom(book: ValidBookName) {
+  return Object.keys(bookMeta[book].verseCounts).length;
+}
+
 function verseCountFrom(book: ValidBookName, chapter: string) {
   return bookMeta[book].verseCounts[chapter];
 }
 
-const ones = `1(st)?|i\\s+|one|fst|fir(s(t)?)?` as const;
-const twos = `2(nd)?|ii\\s+|two|sec(o(n(d)?)?)?` as const;
-const threes = `3(rd)?|iii\\s+|th((r(e(e)?)?)?|(i(r(d)?)?)?)?` as const;
-
-const nonNameChars = `[\\d|:|-|_|\\s]`;
-
-const bookMeta: BookMeta = {
+const bookMeta: BibleMeta = {
   "1 chronicles": {
     match: `^(${ones})\\s*ch(r(o(n(i(c(l(e(s)?)?)?)?)?)?)?)?${nonNameChars}*$`,
     verseCounts: {
@@ -1625,12 +1624,4 @@ const bookMeta: BookMeta = {
   },
 };
 
-export {
-  type ValidBookName,
-  ones,
-  twos,
-  threes,
-  bookNames,
-  verseCountFrom,
-  getBookName,
-};
+export { getBookName, chapterCountFrom, verseCountFrom };
