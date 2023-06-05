@@ -29,7 +29,8 @@ type ParamsError = IError<ParamsMsg>;
 
 const getParams = flow(
   getGroups<GroupKeys>(inputRegex, "gi"),
-  chainW((parts) => getParts(parts))
+  chainW(getParts),
+  chainW(getTypedParts)
 );
 
 type Parts = {
@@ -283,13 +284,4 @@ function getTypedParts(parts: Parts) {
   );
 }
 
-export {
-  type ParamsError,
-  type ParamsMsg,
-  type PartsWrapped,
-  type Parts,
-  getParams,
-  type SearchType,
-  type TypedParts,
-  getTypedParts,
-};
+export { type ParamsError, type ParamsMsg, getParams, type TypedParts };

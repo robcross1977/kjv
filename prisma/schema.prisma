@@ -3,8 +3,6 @@ generator client {
 }
 
 datasource db {
-  //provider = "cockroachdb"
-  //url      = env("DATABASE_URL")
   provider = "sqlite"
   url = "file:./kjv.db"
 }

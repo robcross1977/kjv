@@ -120,14 +120,4 @@ function getGroups<TType extends string>(regex: string, flags?: string) {
   };
 }
 
-export {
-  GroupKeys,
-  wrapNonCap,
-  wrapCap,
-  inputRegex,
-  ones,
-  twos,
-  threes,
-  nonNameChars,
-  getGroups,
-};
+export { GroupKeys, inputRegex, ones, twos, threes, nonNameChars, getGroups };

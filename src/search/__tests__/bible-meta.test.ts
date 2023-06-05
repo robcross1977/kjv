@@ -1,8 +1,9 @@
 import { getBookName, verseCountFrom } from "../bible-meta";
 import { map as aMap, reduce } from "fp-ts/Array";
 import { pipe, flow } from "fp-ts/function";
-import { getParams, ParamsError, Parts } from "../params";
+import { getParams, ParamsError, TypedParts } from "../params";
 import { map, mapLeft, chain, fromOption, getOrElse } from "fp-ts/Either";
+import * as O from "fp-ts/Option";
 
 const nones: string[] = [""];
 
@@ -96,7 +97,7 @@ describe("The book module", () => {
       return search;
     }
 
-    function fullNameFrom({ book }: Parts) {
+    function fullNameFrom({ book }: TypedParts) {
       return pipe(book, map(getRawFullName));
     }
 
@@ -394,10 +395,10 @@ describe("The book module", () => {
 
   describe("The verseCountFrom function", () => {
     it("should return the correct number of verses with valid arguments", () => {
-      const expected = 54; // Got this number from book.ts
-      const result = verseCountFrom("1 chronicles", "1");
+      const expected = O.some(54); // Got this number from book.ts
+      const result = verseCountFrom("1 chronicles", 1);
 
-      expect(result).toBe(expected);
+      expect(result).toEqual(expected);
     });
   });
 });
