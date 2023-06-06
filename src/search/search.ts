@@ -1,5 +1,5 @@
 import { pipe } from "fp-ts/function";
-import { ParamsError, Parts, getParams } from "./params";
+import { ParamsError, getParams, TypedParts } from "./params";
 import * as ROA from "fp-ts/ReadonlyArray";
 import * as RONEA from "fp-ts/ReadonlyNonEmptyArray";
 import * as E from "fp-ts/Either";
@@ -17,8 +17,9 @@ function search(query: string) {
     E.bind("splits", () => getSplits(query)),
     E.bind("main", ({ splits }) => getMain(splits)),
     E.bind("subs", ({ splits }) => getSubs(splits)),
-    E.bindW("params", ({ main }) => getParams(main)),
-    E.bind("title", ({ params }) => getTitle(params))
+    E.bindW("parts", ({ main }) => getParams(main)),
+    E.bind("title", ({ parts }) => getTitle(parts)),
+    E.bind("chapterVerses", ({ parts }) => getChapterVerses(parts))
   );
 }
 
@@ -51,7 +52,7 @@ function getSubs(splits: ReadonlyNonEmptyArray<string>) {
   );
 }
 
-function getTitle(parts: Parts) {
+function getTitle(parts: TypedParts) {
   return pipe(
     parts.book,
     E.match(E.left, (book) =>
@@ -65,5 +66,8 @@ function getTitle(parts: Parts) {
     )
   );
 }
+
+// TODO
+function getChapterVerses(parts: TypedParts) {}
 
 export { search };

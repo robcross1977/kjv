@@ -1696,10 +1696,10 @@ const bookMeta: BibleMeta = {
 export {
   ValidBookName,
   getBookName,
-  chapterCountFrom, // needs tests
-  getChapterRangeFromParts, // needs tests
-  chapterExistsInBook, // needs tests
-  verseCountFrom, // needs tests
-  getVerseRangeFromParts, // needs tests
-  verseExistsInChapter, // needs tests
+  chapterCountFrom,
+  getChapterRangeFromParts,
+  chapterExistsInBook,
+  verseCountFrom,
+  getVerseRangeFromParts,
+  verseExistsInChapter,
 };

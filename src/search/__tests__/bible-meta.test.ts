@@ -1,4 +1,12 @@
-import { getBookName, verseCountFrom } from "../bible-meta";
+import {
+  chapterCountFrom,
+  chapterExistsInBook,
+  getBookName,
+  getChapterRangeFromParts,
+  getVerseRangeFromParts,
+  verseCountFrom,
+  verseExistsInChapter,
+} from "../bible-meta";
 import { map as aMap, reduce } from "fp-ts/Array";
 import { pipe, flow } from "fp-ts/function";
 import { getParams, ParamsError, TypedParts } from "../params";
@@ -397,7 +405,118 @@ describe("The book module", () => {
     it("should return the correct number of verses with valid arguments", () => {
       const expected = O.some(54); // Got this number from book.ts
       const result = verseCountFrom("1 chronicles", 1);
+      expect(result).toEqual(expected);
+    });
 
+    it("should return None if chapter doesn't exist in book", () => {
+      const expected = O.none; // Got this number from book.ts
+      const result = verseCountFrom("1 chronicles", 121);
+      expect(result).toBe(expected);
+    });
+  });
+
+  describe("The getVerseRangeFromParts function", () => {
+    it("should return None if the chapter doesn't exist in the book", () => {
+      const expected = O.none;
+      const result = getVerseRangeFromParts("1 chronicles", 121, 1, 2);
+      expect(result).toEqual(expected);
+    });
+
+    it("should clamp the min to 1 if you try to pass in something under", () => {
+      const expected = O.some([1, 2]);
+      const result = getVerseRangeFromParts("1 chronicles", 1, 0, 2);
+      expect(result).toEqual(expected);
+    });
+
+    it("should clamp the max to the max verse if you try to pass in something over", () => {
+      const expected = O.some([1, 54]);
+      const result = getVerseRangeFromParts("1 chronicles", 1, 1, 100);
+      expect(result).toEqual(expected);
+    });
+
+    it("should reverse the min and the max and return the correct range if the max is greater", () => {
+      const expected = O.some([1, 2]);
+      const result = getVerseRangeFromParts("1 chronicles", 1, 2, 1);
+      expect(result).toEqual(expected);
+    });
+
+    it("should set the min and the max to the number of verses if both are higher than the max", () => {
+      const expected = O.some([54, 54]);
+      const result = getVerseRangeFromParts("1 chronicles", 1, 100, 200);
+      expect(result).toEqual(expected);
+    });
+
+    it("should set the min and the max to 1 if both are lower than the max", () => {
+      const expected = O.some([1, 1]);
+      const result = getVerseRangeFromParts("1 chronicles", 1, 0, 0);
+      expect(result).toEqual(expected);
+    });
+  });
+
+  describe("The verseExistsInChapter function", () => {
+    it("should return true if the verse exists in the chapter", () => {
+      const expected = true;
+      const result = verseExistsInChapter("1 chronicles", 1, 1);
+      expect(result).toEqual(expected);
+    });
+
+    it("should return false if the verse doesn't exist in the chapter", () => {
+      const expected = false;
+      const result = verseExistsInChapter("1 chronicles", 1, 100);
+      expect(result).toEqual(expected);
+    });
+  });
+
+  describe("The chapterCountFrom function", () => {
+    it("should return the correct number of chapters with valid arguments", () => {
+      const expected = 29; // Got this number from book.ts
+      const result = chapterCountFrom("1 chronicles");
+      expect(result).toEqual(expected);
+    });
+  });
+
+  describe("The getChapterRangeFromParts function", () => {
+    it("should clamp the min to 1 if you try to pass in something under", () => {
+      const expected = [1, 2];
+      const result = getChapterRangeFromParts("1 chronicles", 0, 2);
+      expect(result).toEqual(expected);
+    });
+
+    it("should clamp the max to the max chapter if you try to pass in something over", () => {
+      const expected = [1, 29];
+      const result = getChapterRangeFromParts("1 chronicles", 1, 100);
+      expect(result).toEqual(expected);
+    });
+
+    it("should reverse the min and the max and return the correct range if the max is greater", () => {
+      const expected = [1, 2];
+      const result = getChapterRangeFromParts("1 chronicles", 2, 1);
+      expect(result).toEqual(expected);
+    });
+
+    it("should set the min and the max to the number of chapters if both are higher than the max", () => {
+      const expected = [29, 29];
+      const result = getChapterRangeFromParts("1 chronicles", 100, 200);
+      expect(result).toEqual(expected);
+    });
+
+    it("should set the min and the max to 1 if both are lower than the max", () => {
+      const expected = [1, 1];
+      const result = getChapterRangeFromParts("1 chronicles", 0, 0);
+      expect(result).toEqual(expected);
+    });
+  });
+
+  describe("The chapterExistsInBook function", () => {
+    it("should return true if the chapter exists in the book", () => {
+      const expected = true;
+      const result = chapterExistsInBook("1 chronicles", 3);
+      expect(result).toEqual(expected);
+    });
+
+    it("should return false if the chapter doesn't exist in the book", () => {
+      const expected = false;
+      const result = chapterExistsInBook("1 chronicles", 100);
       expect(result).toEqual(expected);
     });
   });
