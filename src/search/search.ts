@@ -18,8 +18,8 @@ function search(query: string) {
     E.bind("main", ({ splits }) => getMain(splits)),
     E.bind("subs", ({ splits }) => getSubs(splits)),
     E.bindW("parts", ({ main }) => getParams(main)),
-    E.bind("title", ({ parts }) => getTitle(parts)),
-    E.bind("chapterVerses", ({ parts }) => getChapterVerses(parts))
+    E.bind("title", ({ parts }) => getTitle(parts))
+    //E.bind("chapterVerses", ({ parts }) => getChapterVerses(parts))
   );
 }
 

@@ -9,7 +9,7 @@
     "test": "jest --watch",
     "test:cov": "jest --coverage",
     "test:ci": "jest --ci --reporters='default' --reporters='./.github/reporters/github-actions-reporter'",
-    "build": "prisma generate && prisma db push && prisma db seed && rm -rf ./dist && tsc"
+    "build": "prisma generate && prisma db push && prisma db seed && rm -rf ./dist && tsc && mkdir ./dist/db && cp ./src/db/kjv.db ./dist/db/kjv.db"
   },
   "keywords": [],
   "author": "",
