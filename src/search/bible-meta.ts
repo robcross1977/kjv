@@ -138,7 +138,7 @@ function getVerseRangeFromParts(
   chapter: number,
   min: number,
   max: number
-): O.Option<[min: number, max: number]> {
+): O.Option<readonly [number, number]> {
   const numVersesOpt = verseCountFrom(book, chapter);
 
   if (O.isSome(numVersesOpt)) {
@@ -152,7 +152,7 @@ function getVerseRangeFromParts(
     const start = clamp(boundedRange)(min < max ? min : max);
     const end = clamp(boundedRange)(max > min ? max : min);
 
-    return O.some([start, end]);
+    return O.some([start, end] as const);
   }
 
   return O.none;
