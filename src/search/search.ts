@@ -1,4 +1,4 @@
-import { pipe } from "fp-ts/function";
+import { absurd, pipe } from "fp-ts/function";
 import { ParamsError, getParams, TypedParts } from "./params";
 import * as A from "fp-ts/Array";
 import * as ROA from "fp-ts/ReadonlyArray";
@@ -17,22 +17,36 @@ import {
 import { IError, errorFrom } from "./error";
 import { ReadonlyNonEmptyArray } from "fp-ts/lib/ReadonlyNonEmptyArray";
 import { Chapter, Verse } from "../lib/types";
-import { validationT } from "fp-ts";
 
 type SearchMsg =
   | "book not found"
   | "no main found"
   | "no subs found"
+  | "book not found"
   | "chapter not found"
   | "verse not found";
 type SearchError = IError<SearchMsg>;
 
+/**
+ * The search function takes the query string and returns a bible search result.
+ *
+ * @param query The query string (e.g. "John 3:16")
+ * @returns A bible search result in JSON format
+ */
 function search(query: string) {
   return pipe(
     E.Do,
+
+    // Split the query into parts on the comma, the first part being the main part, the rest being subs
     E.bind("splits", () => getSplits(query)),
+
+    // Get the main part from the splits
     E.bind("main", ({ splits }) => getMain(splits)),
+
+    // Get the sub parts from the splits. The sub-parts are comma-seperated values after the main part.
+    // Example: John 3:16,18-20,22-24
     E.bind("subs", ({ splits }) => getSubs(splits)),
+
     E.bindW("parts", ({ main }) => getParams(main)),
     E.bind("title", ({ parts }) => getTitle(parts)),
     E.bind("mainChapterVerses", ({ title, parts }) =>
@@ -92,146 +106,103 @@ function makeChapterArray(
   title: ValidBookName,
   parts: TypedParts
 ): E.Either<SearchError | ParamsError, readonly Chapter[]> {
-  switch (parts.type) {
+  return buildSearchArray(title, parts);
+}
+
+function getChapterStart({
+  type,
+  chapterStart,
+}: TypedParts): E.Either<SearchError | ParamsError, number> {
+  switch (type) {
     case "book":
-      return buildBook(title);
+      return E.right(1);
     case "chapter":
-      return buildChapter(title, parts);
     case "verse":
-      return buildVerse(title, parts);
     case "verse-range":
-      return buildVerseRange(title, parts);
     case "chapter-range":
-      return buildChapterRange(title, parts);
     case "multi-chapter-verse":
-      return buildMultiChapterVerse(title, parts);
     case "full-range":
-      return buildFullRange(title, parts);
-    default: {
-      const exhaustiveCheck: never = parts.type;
-      throw new Error(exhaustiveCheck);
-    }
+      return chapterStart;
+    default:
+      return absurd(type);
   }
 }
 
-function buildBook(title: ValidBookName) {
-  return pipe(
-    E.Do,
-    E.apS("chapterStart", E.right(1)),
-    E.apS("chapterEnd", E.right(chapterCountFrom(title))),
-    E.apS("verseStart", E.right(1)),
-    E.bind("verseEnd", ({ chapterEnd }) =>
-      pipe(
-        verseCountFrom(title, chapterEnd),
-        E.fromOption(() => errorFrom<SearchMsg>("verse not found"))
-      )
-    ),
-    E.chain(({ chapterStart, chapterEnd, verseStart, verseEnd }) =>
-      buildChapters(title, chapterStart, chapterEnd, verseStart, verseEnd)
-    )
-  );
+function getChapterEnd(
+  title: ValidBookName,
+  { type, chapterStart, chapterEnd }: TypedParts
+): E.Either<SearchError | ParamsError, number> {
+  switch (type) {
+    case "book":
+      return pipe(chapterCountFrom(title), E.right);
+    case "chapter":
+    case "verse":
+    case "verse-range":
+    case "multi-chapter-verse":
+      return chapterStart;
+    case "chapter-range":
+    case "full-range":
+      return chapterEnd;
+    default:
+      return absurd(type);
+  }
 }
 
-function buildChapter(
-  title: ValidBookName,
-  parts: TypedParts
-): E.Either<SearchError | ParamsError, readonly Chapter[]> {
-  return pipe(
-    E.Do,
-    E.apS("chapterStart", parts.chapterStart),
-    E.apS("chapterEnd", parts.chapterStart),
-    E.apS("verseStart", E.right(1)),
-    E.bindW("verseEnd", ({ chapterEnd }) =>
-      pipe(
-        verseCountFrom(title, chapterEnd),
-        E.fromOption(() => errorFrom<SearchMsg>("verse not found"))
-      )
-    ),
-    E.chainW(({ chapterStart, chapterEnd, verseStart, verseEnd }) =>
-      buildChapters(title, chapterStart, chapterEnd, verseStart, verseEnd)
-    )
-  );
+function getVerseStart({
+  type,
+  verseStart,
+}: TypedParts): E.Either<SearchError | ParamsError, number> {
+  switch (type) {
+    case "book":
+    case "chapter":
+    case "chapter-range":
+      return E.right(1);
+    case "verse":
+    case "verse-range":
+    case "multi-chapter-verse":
+    case "full-range":
+      return verseStart;
+    default:
+      return absurd(type);
+  }
 }
 
-function buildVerse(
+function getVerseEnd(
   title: ValidBookName,
-  parts: TypedParts
-): E.Either<SearchError | ParamsError, readonly Chapter[]> {
-  return pipe(
-    E.Do,
-    E.apS("chapterStart", parts.chapterStart),
-    E.apS("chapterEnd", parts.chapterStart),
-    E.apS("verseStart", parts.verseStart),
-    E.apS("verseEnd", parts.verseStart),
-    E.chainW(({ chapterStart, chapterEnd, verseStart, verseEnd }) =>
-      buildChapters(title, chapterStart, chapterEnd, verseStart, verseEnd)
-    )
-  );
+  { type, chapterEnd, verseStart, verseEnd }: TypedParts
+): E.Either<SearchError | ParamsError, number> {
+  switch (type) {
+    case "book":
+    case "chapter":
+    case "chapter-range":
+      return pipe(
+        E.Do,
+        E.apS("chapterEnd", chapterEnd),
+        E.chainW(({ chapterEnd }) =>
+          pipe(
+            verseCountFrom(title, chapterEnd),
+            E.fromOption(() => errorFrom<SearchMsg>("verse not found"))
+          )
+        )
+      );
+    case "verse":
+      return verseStart;
+    case "verse-range":
+    case "multi-chapter-verse":
+    case "full-range":
+      return verseEnd;
+    default:
+      return absurd(type);
+  }
 }
 
-function buildVerseRange(
-  title: ValidBookName,
-  parts: TypedParts
-): E.Either<SearchError | ParamsError, readonly Chapter[]> {
+function buildSearchArray(title: ValidBookName, parts: TypedParts) {
   return pipe(
     E.Do,
-    E.apS("chapterStart", parts.chapterStart),
-    E.apS("chapterEnd", parts.chapterStart),
-    E.apS("verseStart", parts.verseStart),
-    E.apS("verseEnd", parts.verseEnd),
-    E.chainW(({ chapterStart, chapterEnd, verseStart, verseEnd }) =>
-      buildChapters(title, chapterStart, chapterEnd, verseStart, verseEnd)
-    )
-  );
-}
-
-function buildChapterRange(
-  title: ValidBookName,
-  parts: TypedParts
-): E.Either<SearchError | ParamsError, readonly Chapter[]> {
-  return pipe(
-    E.Do,
-    E.apS("chapterStart", parts.chapterStart),
-    E.apS("chapterEnd", parts.chapterEnd),
-    E.apS("verseStart", E.right(1)),
-    E.bindW("verseEnd", ({ chapterEnd }) =>
-      pipe(
-        verseCountFrom(title, chapterEnd),
-        E.fromOption(() => errorFrom<SearchMsg>("verse not found"))
-      )
-    ),
-    E.chainW(({ chapterStart, chapterEnd, verseStart, verseEnd }) =>
-      buildChapters(title, chapterStart, chapterEnd, verseStart, verseEnd)
-    )
-  );
-}
-
-function buildMultiChapterVerse(
-  title: ValidBookName,
-  parts: TypedParts
-): E.Either<SearchError | ParamsError, readonly Chapter[]> {
-  return pipe(
-    E.Do,
-    E.apS("chapterStart", parts.chapterStart),
-    E.apS("chapterEnd", parts.chapterStart),
-    E.apS("verseStart", parts.verseStart),
-    E.apS("verseEnd", parts.verseEnd),
-    E.chainW(({ chapterStart, chapterEnd, verseStart, verseEnd }) =>
-      buildChapters(title, chapterStart, chapterEnd, verseStart, verseEnd)
-    )
-  );
-}
-
-function buildFullRange(
-  title: ValidBookName,
-  parts: TypedParts
-): E.Either<SearchError | ParamsError, readonly Chapter[]> {
-  return pipe(
-    E.Do,
-    E.apS("chapterStart", parts.chapterStart),
-    E.apS("chapterEnd", parts.chapterEnd),
-    E.apS("verseStart", parts.verseStart),
-    E.apS("verseEnd", parts.verseEnd),
+    E.apS("chapterStart", getChapterStart(parts)),
+    E.apSW("chapterEnd", getChapterEnd(title, parts)),
+    E.apSW("verseStart", getVerseStart(parts)),
+    E.apS("verseEnd", getVerseEnd(title, parts)),
     E.chainW(({ chapterStart, chapterEnd, verseStart, verseEnd }) =>
       buildChapters(title, chapterStart, chapterEnd, verseStart, verseEnd)
     )
