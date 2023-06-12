@@ -76,5 +76,20 @@ describe("The Search Module", () => {
 
       expect(result).toEqual(expected);
     });
+
+    it("should return a valid full search for a full search query", () => {
+      const expected: E.Either<never, Search> = E.right({
+        name: "1 john",
+        chapters: {
+          "2": fromArray(Eq)(A.makeBy(28, (i) => i + 2)), // 1-29 (1-indexed)
+          "3": fromArray(Eq)(A.makeBy(24, (i) => i + 1)), // 1-24 (1-indexed)
+          "4": fromArray(Eq)(A.makeBy(4, (i) => i + 1)), // 1-21 (1-indexed)
+        },
+      });
+
+      const result = search("1 John 2:2-4:4");
+
+      expect(result).toEqual(expected);
+    });
   });
 });
