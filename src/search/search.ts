@@ -5,7 +5,11 @@ import * as ROA from "fp-ts/ReadonlyArray";
 import * as RONEA from "fp-ts/ReadonlyNonEmptyArray";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
+import * as N from "fp-ts/number";
 import * as S from "fp-ts/string";
+import * as R from "fp-ts/Record";
+import { fromArray } from "fp-ts/Set";
+
 import {
   ValidBookName,
   chapterCountFrom,
@@ -16,7 +20,6 @@ import {
 } from "./bible-meta";
 import { IError, errorFrom } from "./error";
 import { ReadonlyNonEmptyArray } from "fp-ts/lib/ReadonlyNonEmptyArray";
-import { Chapter, Verse } from "../lib/types";
 
 type SearchMsg =
   | "book not found"
@@ -25,7 +28,14 @@ type SearchMsg =
   | "book not found"
   | "chapter not found"
   | "verse not found";
+
 type SearchError = IError<SearchMsg>;
+
+type Chapters = Record<string, Set<number>>;
+type Search = {
+  name: ValidBookName;
+  chapters: Chapters;
+};
 
 /**
  * The search function takes the query string and returns a bible search result.
@@ -51,9 +61,17 @@ function search(query: string) {
     E.bind("title", ({ parts }) => getTitle(parts)),
     E.bind("mainChapterVerses", ({ title, parts }) =>
       makeChapterArray(title, parts)
-    )
+    ),
+    E.bind("search", ({ title, mainChapterVerses }) => {
+      return E.right(<Search>{
+        name: title,
+        chapters: mainChapterVerses,
+      });
+    }),
+    E.map(({ search }) => search)
     // add subs to chapter verses (might use that function that is like reduce but keeps the state)
     // get final bible search result
+
     // query the sql database and return the result
   );
 }
@@ -102,10 +120,7 @@ function getTitle(parts: TypedParts) {
   );
 }
 
-function makeChapterArray(
-  title: ValidBookName,
-  parts: TypedParts
-): E.Either<SearchError | ParamsError, readonly Chapter[]> {
+function makeChapterArray(title: ValidBookName, parts: TypedParts) {
   return buildSearchArray(title, parts);
 }
 
@@ -138,9 +153,9 @@ function getChapterEnd(
     case "chapter":
     case "verse":
     case "verse-range":
-    case "multi-chapter-verse":
       return chapterStart;
     case "chapter-range":
+    case "multi-chapter-verse":
     case "full-range":
       return chapterEnd;
     default:
@@ -156,10 +171,10 @@ function getVerseStart({
     case "book":
     case "chapter":
     case "chapter-range":
+    case "multi-chapter-verse":
       return E.right(1);
     case "verse":
     case "verse-range":
-    case "multi-chapter-verse":
     case "full-range":
       return verseStart;
     default:
@@ -169,21 +184,31 @@ function getVerseStart({
 
 function getVerseEnd(
   title: ValidBookName,
-  { type, chapterEnd, verseStart, verseEnd }: TypedParts
+  { type, chapterStart, chapterEnd, verseStart, verseEnd }: TypedParts
 ): E.Either<SearchError | ParamsError, number> {
   switch (type) {
     case "book":
-    case "chapter":
     case "chapter-range":
       return pipe(
         E.Do,
-        E.apS("chapterEnd", chapterEnd),
-        E.chainW(({ chapterEnd }) =>
-          pipe(
-            verseCountFrom(title, chapterEnd),
+        E.apS("chEnd", E.right(chapterCountFrom(title))),
+        E.chainW(({ chEnd }) => {
+          return pipe(
+            verseCountFrom(title, chEnd),
             E.fromOption(() => errorFrom<SearchMsg>("verse not found"))
-          )
-        )
+          );
+        })
+      );
+    case "chapter":
+      return pipe(
+        E.Do,
+        E.apS("chStart", chapterStart),
+        E.chainW(({ chStart }) => {
+          return pipe(
+            verseCountFrom(title, chStart),
+            E.fromOption(() => errorFrom<SearchMsg>("verse not found"))
+          );
+        })
       );
     case "verse":
       return verseStart;
@@ -216,53 +241,58 @@ function buildChapters(
   verseStart: number,
   verseEnd: number
 ) {
-  return pipe(
+  const result = pipe(
     E.Do,
     E.apS(
       "chapterRange",
       E.right(getChapterRangeFromParts(title, chapterStart, chapterEnd))
     ),
     E.bind("chapterCount", ({ chapterRange }) =>
-      E.right(chapterRange[0] - chapterRange[0] + 1)
+      E.right(chapterRange[1] - chapterRange[0] + 1)
     ),
-    E.chain(({ chapterCount, chapterRange }) =>
-      pipe(
-        A.makeBy(chapterCount, (i) =>
-          pipe(
-            E.Do,
-            E.apS("currentChapter", E.right(i + chapterRange[0])),
-            E.bind("verseRange", ({ currentChapter }) =>
-              getVerseRange(
-                title,
-                currentChapter,
-                chapterRange,
-                verseStart,
-                verseEnd
-              )
-            ),
-            E.chain(({ currentChapter, verseRange }) =>
-              E.right(buildChapterArray(currentChapter, verseRange))
+    E.chain(({ chapterCount, chapterRange }) => {
+      const arr = A.makeBy(chapterCount, (i) =>
+        pipe(
+          E.Do,
+          E.apS("currentChapter", E.right(i + chapterRange[0])),
+          E.bind("verseRange", ({ currentChapter }) =>
+            getVerseRange(
+              title,
+              currentChapter,
+              chapterRange,
+              verseStart,
+              verseEnd
             )
+          ),
+          E.chain(({ currentChapter, verseRange }) =>
+            E.right(buildChapterVersesTuple(currentChapter, verseRange))
           )
-        ),
-        E.sequenceArray<SearchError, Chapter>
-      )
-    )
+        )
+      );
+
+      return pipe(
+        arr,
+        E.sequenceArray,
+        E.map(ROA.toArray),
+        E.map(R.fromEntries)
+      );
+    })
   );
+
+  return result;
 }
 
-function buildChapterArray(
+function buildChapterVersesTuple(
   currentChapter: number,
   verseRange: readonly [number, number]
-) {
-  return {
-    number: currentChapter,
-    verses: A.makeBy<Verse>(verseRange[1] - verseRange[0] + 1, (j) => {
-      return {
-        number: j + verseRange[0],
-      };
-    }),
-  };
+): [string, Set<number>] {
+  return [
+    String(currentChapter),
+    pipe(
+      A.makeBy(verseRange[1] - verseRange[0] + 1, (j) => j + verseRange[0]),
+      fromArray(N.Eq)
+    ),
+  ];
 }
 
 function getVerseRange(
@@ -292,7 +322,7 @@ function getFinalVerseRange(
   verseStart: number,
   verseEnd: number
 ) {
-  return pipe(
+  const result = pipe(
     getVerseRangeForSingleChapter(
       title,
       currentChapter,
@@ -308,18 +338,22 @@ function getFinalVerseRange(
         verseStart
       )
     ),
-    O.alt(() =>
-      getVerseRangeForEndingChapter(
+    O.alt(() => {
+      const endingRange = getVerseRangeForEndingChapter(
         title,
         currentChapter,
         chapterRange,
         verseEnd
-      )
-    ),
+      );
+
+      return endingRange;
+    }),
     O.alt(() =>
       getVerseRangeForContainedChapter(title, currentChapter, chapterRange)
     )
   );
+
+  return result;
 }
 
 function getVerseRangeForSingleChapter(
@@ -378,7 +412,7 @@ function getVerseRangeForContainedChapter(
 ) {
   return pipe(
     currentChapter,
-    O.fromPredicate((cc) => cc > chapterRange[0] && cc === chapterRange[1]),
+    O.fromPredicate((cc) => cc > chapterRange[0] && cc < chapterRange[1]),
     O.chain(() =>
       pipe(
         verseCountFrom(title, currentChapter),
@@ -390,4 +424,4 @@ function getVerseRangeForContainedChapter(
   );
 }
 
-export { search };
+export { Search, search };
