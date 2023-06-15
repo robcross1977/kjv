@@ -284,4 +284,4 @@ function getTypedParts(parts: Parts) {
   );
 }
 
-export { type ParamsError, type ParamsMsg, getParams, type TypedParts };
+export { ParamsError, ParamsMsg, getParams, TypedParts, SearchType };

@@ -1,3 +1,5 @@
+import { ValidBookName } from "../search/bible-meta";
+
 type Verse = {
   number: number;
   text?: string;
@@ -13,4 +15,10 @@ interface Book {
   chapters: Chapter[];
 }
 
-export { type Book, type Chapter, type Verse };
+type Chapters = Record<string, Set<number>>;
+type Search = {
+  name: ValidBookName;
+  chapters: Chapters;
+};
+
+export { Book, Chapter, Verse, Chapters, Search };

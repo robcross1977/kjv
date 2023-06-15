@@ -20,6 +20,8 @@ import {
 } from "./bible-meta";
 import { IError, errorFrom } from "./error";
 import { ReadonlyNonEmptyArray } from "fp-ts/lib/ReadonlyNonEmptyArray";
+import { Search } from "../lib/types";
+import { getSubChapterVerses } from "./subs";
 
 type SearchMsg =
   | "book not found"
@@ -30,12 +32,6 @@ type SearchMsg =
   | "verse not found";
 
 type SearchError = IError<SearchMsg>;
-
-type Chapters = Record<string, Set<number>>;
-type Search = {
-  name: ValidBookName;
-  chapters: Chapters;
-};
 
 /**
  * The search function takes the query string and returns a bible search result.
@@ -62,12 +58,14 @@ function search(query: string) {
     E.bind("mainChapterVerses", ({ title, parts }) =>
       makeChapterArray(title, parts)
     ),
-    E.bind("search", ({ title, mainChapterVerses }) => {
-      return E.right(<Search>{
+    //E.bind("subChapterVerses", ({ title, parts, subs}) => getSubChapterVerses(title, parts, subs)),
+    //E.bind("combinedChapterVerses", ({ mainChapterVerses, subChapterVerses }) => combineChapterVerses(mainChapterVerses, subChapterVerses)
+    E.bind("search", ({ title, mainChapterVerses }) =>
+      E.right(<Search>{
         name: title,
         chapters: mainChapterVerses,
-      });
-    }),
+      })
+    ),
     E.map(({ search }) => search)
     // add subs to chapter verses (might use that function that is like reduce but keeps the state)
     // get final bible search result

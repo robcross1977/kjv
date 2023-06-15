@@ -102,11 +102,14 @@ function wrapNonCap(internal: string = "") {
   );
 }
 
-function build(regex: string, flags?: string) {
+function build(regex: string | RegExp, flags?: string) {
   return new RegExp(regex, flags);
 }
 
-function getGroups<TType extends string>(regex: string, flags?: string) {
+function getGroups<TType extends string>(
+  regex: string | RegExp,
+  flags?: string
+) {
   return function (
     search: string
   ): E.Either<RegexError, Record<TType, string>> {
