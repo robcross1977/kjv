@@ -3,7 +3,7 @@ import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import * as P from "fp-ts/Predicate";
 import { ValidBookName } from "./bible-meta";
-import { SearchType, TypedParts } from "./params";
+import { SearchType, TypedParts, getParams } from "./params";
 import { pipe } from "fp-ts/lib/function";
 import { getGroups } from "./regex";
 
@@ -71,19 +71,38 @@ import { getGroups } from "./regex";
 // New query: `${title} ${sub}`
 // -----------------------------------------------------------------------------
 
-function getSubChapterVerses(
+function getSubsAsTypedParts(
   title: ValidBookName,
   parts: TypedParts,
   subs: string[]
 ) {
-  return A.scanLeft<string, TypedParts[]>([parts], (acc, sub) => {})(subs);
+  return A.scanLeft<string, TypedParts[]>([parts], (acc, sub) => {
+    return pipe(
+      O.Do,
+      O.apS("prevParts", O.some(acc[acc.length - 1])),
+      O.bind("newQuery", ({ prevParts }) => getNewQuery(title, prevParts, sub)),
+      O.chain(({ newQuery }) => subQueryToTypedParts(acc, newQuery)),
+      O.getOrElseW(() => acc)
+    );
+  })(subs);
+}
+
+function subQueryToTypedParts(acc: TypedParts[], query: string) {
+  return pipe(
+    getParams(query),
+    O.fromEither,
+    O.map((newParts) => [...acc, newParts])
+  );
 }
 
 function getNewQuery(title: ValidBookName, parts: TypedParts, sub: string) {
   return pipe(
-    sub,
-    isChapter(parts.type),
-    O.fromPredicate((is) => is === true)
+    buildChapter(title, parts, sub),
+    O.alt(() => buildChapterRange(title, parts, sub)),
+    O.alt(() => buildVerse(title, parts, sub)),
+    O.alt(() => buildVerseRange(title, parts, sub)),
+    O.alt(() => buildMultiChapterVerse(title, parts, sub)),
+    O.alt(() => buildFullRange(title, parts, sub))
   );
 }
 
@@ -152,41 +171,90 @@ function isVerse(previousParts: TypedParts) {
 function buildVerse(title: ValidBookName, parts: TypedParts, sub: string) {
   return pipe(
     sub,
-    isChapterRange(parts.type),
+    isVerse(parts),
+    O.fromPredicate((is) => is),
+    O.chain(() =>
+      pipe(
+        parts.chapterStart,
+        O.fromEither,
+        O.map((chapter) => `${title} ${chapter}:${sub}`)
+      )
+    )
+  );
+}
+
+function isVerseRange(previousParts: TypedParts) {
+  return function (sub: string) {
+    const verseRangeMatchData: MatchData = [
+      /^\s*\d{1,3}\s*-\s*\d{1,3}\s*$/,
+      (t) =>
+        E.isRight(previousParts.chapterStart) &&
+        (t === "verse" ||
+          t === "verse-range" ||
+          t === "multi-chapter-verse" ||
+          t === "full-range"),
+    ];
+
+    return getIsMatch(previousParts.type, sub, verseRangeMatchData);
+  };
+}
+
+function buildVerseRange(title: ValidBookName, parts: TypedParts, sub: string) {
+  return pipe(
+    sub,
+    isVerseRange(parts),
+    O.fromPredicate((is) => is),
+    O.chain(() =>
+      pipe(
+        parts.chapterStart,
+        O.fromEither,
+        O.map((chapter) => `${title} ${chapter}:${sub}`)
+      )
+    )
+  );
+}
+
+function isMultiChapterVerse(previousType: SearchType) {
+  return function (sub: string) {
+    const multiChapterVerseMatchData: MatchData = [
+      /^\s*\d{1,3}\s*-\s*\d{1,3}\s*:\s*\d{1,3}\s*$/,
+      (_) => true,
+    ];
+    return getIsMatch(previousType, sub, multiChapterVerseMatchData);
+  };
+}
+
+function buildMultiChapterVerse(
+  title: ValidBookName,
+  parts: TypedParts,
+  sub: string
+) {
+  return pipe(
+    sub,
+    isMultiChapterVerse(parts.type),
     O.fromPredicate((is) => is),
     O.map(() => `${title} ${sub}`)
   );
 }
 
-function isVerseRange(previousType: SearchType, sub: string) {
-  const verseRangeMatchData: MatchData = [
-    /^\s*\d{1,3}\s*-\s*\d{1,3}\s*$/,
-    (t) =>
-      t === "verse" ||
-      t === "verse-range" ||
-      t === "multi-chapter-verse" ||
-      t === "full-range",
-  ];
+function isFullRange(previousType: SearchType) {
+  return function (sub: string) {
+    const fullRangeMatchData: MatchData = [
+      /^\s*\d{1,3}\s*:\s*\d{1,3}\s*-\s*\d{1,3}\s*:\s*\d{1,3}\s*$/,
+      (_) => true,
+    ];
 
-  return getIsMatch(previousType, sub, verseRangeMatchData);
+    return getIsMatch(previousType, sub, fullRangeMatchData);
+  };
 }
 
-function isMultiChapterVerse(previousType: SearchType, sub: string) {
-  const multiChapterVerseMatchData: MatchData = [
-    /^\s*\d{1,3}\s*-\s*\d{1,3}\s*:\s*\d{1,3}\s*$/,
-    (_) => true,
-  ];
-
-  return getIsMatch(previousType, sub, multiChapterVerseMatchData);
-}
-
-function isFullRange(previousType: SearchType, sub: string) {
-  const fullRangeMatchData: MatchData = [
-    /^\s*\d{1,3}\s*:\s*\d{1,3}\s*-\s*\d{1,3}\s*:\s*\d{1,3}\s*$/,
-    (_) => true,
-  ];
-
-  return getIsMatch(previousType, sub, fullRangeMatchData);
+function buildFullRange(title: ValidBookName, parts: TypedParts, sub: string) {
+  return pipe(
+    sub,
+    isFullRange(parts.type),
+    O.fromPredicate((is) => is),
+    O.map(() => `${title} ${sub}`)
+  );
 }
 
 function getIsMatch(type: SearchType, sub: string, matchData: MatchData) {
@@ -198,4 +266,4 @@ function getIsMatch(type: SearchType, sub: string, matchData: MatchData) {
   );
 }
 
-export { getSubChapterVerses };
+export { getSubsAsTypedParts as getSubChapterVerses };
