@@ -84,14 +84,17 @@ function getVerseStart({
 
 function getVerseEnd(
   title: ValidBookName,
-  { type, chapterStart, verseStart, verseEnd }: TypedParts
+  { type, chapterStart, chapterEnd, verseStart, verseEnd }: TypedParts
 ): E.Either<SearchBuilderError | ParamsError, number> {
   switch (type) {
     case "book":
     case "chapter-range":
       return pipe(
         E.Do,
-        E.apS("chEnd", E.right(chapterCountFrom(title))),
+        E.apS(
+          "chEnd",
+          type === "book" ? E.right(chapterCountFrom(title)) : chapterEnd
+        ),
         E.chainW(({ chEnd }) => {
           return pipe(
             verseCountFrom(title, chEnd),

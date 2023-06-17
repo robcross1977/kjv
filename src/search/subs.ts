@@ -92,13 +92,13 @@ function getSubsChapterArrays(
 ) {
   return pipe(
     subs,
-    A.scanLeft<string, TypedParts>(parts, (acc, sub) => {
-      return pipe(
+    A.scanLeft<string, TypedParts>(parts, (acc, sub) =>
+      pipe(
         getNewQuery(title, acc, sub),
         O.chain(subQueryToTypedParts),
         O.getOrElseW(() => acc)
-      );
-    }),
+      )
+    ),
     A.tail,
     E.fromOption<SubsError>(() => errorFrom<SubsMsg>("no subs found")),
     E.chainW(
@@ -120,6 +120,7 @@ function getNewQuery(title: ValidBookName, parts: TypedParts, sub: string) {
     O.alt(() => buildChapterRange(title, parts, sub)),
     O.alt(() => buildVerse(title, parts, sub)),
     O.alt(() => buildVerseRange(title, parts, sub)),
+    O.alt(() => buildFullVerseRange(title, parts, sub)),
     O.alt(() => buildChapterVerse(title, parts, sub)),
     O.alt(() => buildMultiChapterVerse(title, parts, sub)),
     O.alt(() => buildFullRange(title, parts, sub))
@@ -255,6 +256,30 @@ function buildVerseRange(title: ValidBookName, parts: TypedParts, sub: string) {
         O.map((chapter) => `${title} ${chapter}:${sub}`)
       )
     )
+  );
+}
+
+function isFullVerseRange(previousParts: TypedParts) {
+  return function (sub: string) {
+    const verseRangeMatchData: MatchData = [
+      /^\s*\d{1,3}\s*:\s*\d{1,3}\s*-\s*\d{1,3}\s*$/,
+      () => true,
+    ];
+
+    return getIsMatch(previousParts.type, sub, verseRangeMatchData);
+  };
+}
+
+function buildFullVerseRange(
+  title: ValidBookName,
+  parts: TypedParts,
+  sub: string
+) {
+  return pipe(
+    sub,
+    isFullVerseRange(parts),
+    O.fromPredicate((is) => is),
+    O.chain(() => pipe(O.some(`${title} ${sub}`)))
   );
 }
 
