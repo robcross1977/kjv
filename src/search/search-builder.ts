@@ -1,122 +1,24 @@
 import { absurd, pipe } from "fp-ts/function";
-import { ParamsError, getParams, TypedParts } from "./params";
+import { ParamsError, TypedParts } from "./params";
 import * as A from "fp-ts/Array";
 import * as ROA from "fp-ts/ReadonlyArray";
-import * as RONEA from "fp-ts/ReadonlyNonEmptyArray";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import * as N from "fp-ts/number";
-import * as S from "fp-ts/string";
 import * as R from "fp-ts/Record";
 import { fromArray } from "fp-ts/Set";
-
 import {
   ValidBookName,
   chapterCountFrom,
-  getBookName,
   getChapterRangeFromParts,
   getVerseRangeFromParts,
   verseCountFrom,
 } from "./bible-meta";
 import { IError, errorFrom } from "./error";
-import { ReadonlyNonEmptyArray } from "fp-ts/lib/ReadonlyNonEmptyArray";
 import { Search } from "../lib/types";
-import { getSubChapterVerses } from "./subs";
 
-type SearchMsg =
-  | "book not found"
-  | "no main found"
-  | "no subs found"
-  | "book not found"
-  | "chapter not found"
-  | "verse not found";
-
-type SearchError = IError<SearchMsg>;
-
-/**
- * The search function takes the query string and returns a bible search result.
- *
- * @param query The query string (e.g. "John 3:16")
- * @returns A bible search result in JSON format
- */
-function search(query: string) {
-  return pipe(
-    E.Do,
-
-    // Split the query into parts on the comma, the first part being the main part, the rest being subs
-    E.bind("splits", () => getSplits(query)),
-
-    // Get the main part from the splits
-    E.bind("main", ({ splits }) => getMain(splits)),
-
-    // Get the sub parts from the splits. The sub-parts are comma-seperated values after the main part.
-    // Example: John 3:16,18-20,22-24
-    E.bind("subs", ({ splits }) => getSubs(splits)),
-
-    E.bindW("parts", ({ main }) => getParams(main)),
-    E.bind("title", ({ parts }) => getTitle(parts)),
-    E.bind("mainChapterVerses", ({ title, parts }) =>
-      makeChapterArray(title, parts)
-    ),
-    //E.bind("subChapterVerses", ({ title, parts, subs}) => getSubChapterVerses(title, parts, subs)),
-    //E.bind("combinedChapterVerses", ({ mainChapterVerses, subChapterVerses }) => combineChapterVerses(mainChapterVerses, subChapterVerses)
-    E.bind("search", ({ title, mainChapterVerses }) =>
-      E.right(<Search>{
-        name: title,
-        chapters: mainChapterVerses,
-      })
-    ),
-    E.map(({ search }) => search)
-    // add subs to chapter verses (might use that function that is like reduce but keeps the state)
-    // get final bible search result
-
-    // query the sql database and return the result
-  );
-}
-
-function getSplits(query: string) {
-  return pipe(
-    query,
-    S.split(","),
-    E.of<SearchError, ReadonlyNonEmptyArray<string>>
-  );
-}
-
-function getMain(splits: ReadonlyNonEmptyArray<string>) {
-  return pipe(
-    splits,
-    RONEA.head,
-    E.fromPredicate(
-      (h) => h.length > 0,
-      () => errorFrom<SearchMsg>("no main found")
-    )
-  );
-}
-
-function getSubs(splits: ReadonlyNonEmptyArray<string>) {
-  return pipe(
-    splits,
-    RONEA.tail,
-    ROA.map(S.trim),
-    ROA.filter((i) => i.length > 0),
-    E.of<SearchError, readonly string[]>
-  );
-}
-
-function getTitle(parts: TypedParts) {
-  return pipe(
-    parts.book,
-    E.match(E.left, (book) =>
-      pipe(
-        book,
-        getBookName,
-        E.fromOption<SearchError | ParamsError>(() =>
-          errorFrom<SearchMsg>("book not found")
-        )
-      )
-    )
-  );
-}
+type SearchBuilderMsg = "verse not found";
+type SearchBuilderError = IError<SearchBuilderMsg>;
 
 function makeChapterArray(title: ValidBookName, parts: TypedParts) {
   return buildSearchArray(title, parts);
@@ -125,7 +27,7 @@ function makeChapterArray(title: ValidBookName, parts: TypedParts) {
 function getChapterStart({
   type,
   chapterStart,
-}: TypedParts): E.Either<SearchError | ParamsError, number> {
+}: TypedParts): E.Either<SearchBuilderError | ParamsError, number> {
   switch (type) {
     case "book":
       return E.right(1);
@@ -144,7 +46,7 @@ function getChapterStart({
 function getChapterEnd(
   title: ValidBookName,
   { type, chapterStart, chapterEnd }: TypedParts
-): E.Either<SearchError | ParamsError, number> {
+): E.Either<SearchBuilderError | ParamsError, number> {
   switch (type) {
     case "book":
       return pipe(chapterCountFrom(title), E.right);
@@ -164,7 +66,7 @@ function getChapterEnd(
 function getVerseStart({
   type,
   verseStart,
-}: TypedParts): E.Either<SearchError | ParamsError, number> {
+}: TypedParts): E.Either<SearchBuilderError | ParamsError, number> {
   switch (type) {
     case "book":
     case "chapter":
@@ -183,7 +85,7 @@ function getVerseStart({
 function getVerseEnd(
   title: ValidBookName,
   { type, chapterStart, chapterEnd, verseStart, verseEnd }: TypedParts
-): E.Either<SearchError | ParamsError, number> {
+): E.Either<SearchBuilderError | ParamsError, number> {
   switch (type) {
     case "book":
     case "chapter-range":
@@ -193,7 +95,7 @@ function getVerseEnd(
         E.chainW(({ chEnd }) => {
           return pipe(
             verseCountFrom(title, chEnd),
-            E.fromOption(() => errorFrom<SearchMsg>("verse not found"))
+            E.fromOption(() => errorFrom<SearchBuilderMsg>("verse not found"))
           );
         })
       );
@@ -204,7 +106,7 @@ function getVerseEnd(
         E.chainW(({ chStart }) => {
           return pipe(
             verseCountFrom(title, chStart),
-            E.fromOption(() => errorFrom<SearchMsg>("verse not found"))
+            E.fromOption(() => errorFrom<SearchBuilderMsg>("verse not found"))
           );
         })
       );
@@ -308,7 +210,9 @@ function getVerseRange(
       verseStart,
       verseEnd
     ),
-    E.fromOption<SearchError>(() => errorFrom<SearchMsg>("verse not found"))
+    E.fromOption<SearchBuilderError>(() =>
+      errorFrom<SearchBuilderMsg>("verse not found")
+    )
   );
 }
 
@@ -422,4 +326,4 @@ function getVerseRangeForContainedChapter(
   );
 }
 
-export { Search, search };
+export { Search, makeChapterArray };

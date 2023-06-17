@@ -6,6 +6,7 @@ import { ValidBookName } from "./bible-meta";
 import { SearchType, TypedParts, getParams } from "./params";
 import { pipe } from "fp-ts/lib/function";
 import { getGroups } from "./regex";
+import { makeChapterArray } from "./search-builder";
 
 // TODO: create moinoid to concat Searches
 
@@ -27,6 +28,16 @@ import { getGroups } from "./regex";
 //
 // This regex will be recognized as a chapter-range match if the previous part
 // is a book, chapter or chapter-range.
+//
+// New query: `${title} ${sub}`
+//
+// -----------------------------------------------------------------------------
+// CHAPTER  VERSE
+// -----------------------------------------------------------------------------
+// Sub Regex: \d{1,3}:\d{1,3}
+//
+// This regex will be recognized as a whole new chapter-verse match regardless
+// of the previous part.
 //
 // New query: `${title} ${sub}`
 //
@@ -76,15 +87,22 @@ function getSubsAsTypedParts(
   parts: TypedParts,
   subs: string[]
 ) {
-  return A.scanLeft<string, TypedParts[]>([parts], (acc, sub) => {
-    return pipe(
-      O.Do,
-      O.apS("prevParts", O.some(acc[acc.length - 1])),
-      O.bind("newQuery", ({ prevParts }) => getNewQuery(title, prevParts, sub)),
-      O.chain(({ newQuery }) => subQueryToTypedParts(acc, newQuery)),
-      O.getOrElseW(() => acc)
-    );
-  })(subs);
+  return pipe(
+    subs,
+    A.scanLeft<string, TypedParts[]>([parts], (acc, sub) => {
+      return pipe(
+        O.Do,
+        O.apS("prevParts", A.last(acc)),
+        O.bind("newQuery", ({ prevParts }) =>
+          getNewQuery(title, prevParts, sub)
+        ),
+        O.chain(({ newQuery }) => subQueryToTypedParts(acc, newQuery)),
+        O.getOrElseW(() => acc)
+      );
+    }),
+    A.last
+    //A.map(p => makeChapterArray(title, p))
+  );
 }
 
 function subQueryToTypedParts(acc: TypedParts[], query: string) {
@@ -101,6 +119,7 @@ function getNewQuery(title: ValidBookName, parts: TypedParts, sub: string) {
     O.alt(() => buildChapterRange(title, parts, sub)),
     O.alt(() => buildVerse(title, parts, sub)),
     O.alt(() => buildVerseRange(title, parts, sub)),
+    O.alt(() => buildChapterVerse(title, parts, sub)),
     O.alt(() => buildMultiChapterVerse(title, parts, sub)),
     O.alt(() => buildFullRange(title, parts, sub))
   );
@@ -147,6 +166,30 @@ function buildChapterRange(
   return pipe(
     sub,
     isChapterRange(parts.type),
+    O.fromPredicate((is) => is),
+    O.map(() => `${title} ${sub}`)
+  );
+}
+
+function isChapterVerse(previousType: SearchType) {
+  return function (sub: string) {
+    const chapterVerseMatchData: MatchData = [
+      /^\s*\d{1,3}\s*:\s*\d{1,3}\s*$/,
+      (_) => true,
+    ];
+
+    return getIsMatch(previousType, sub, chapterVerseMatchData);
+  };
+}
+
+function buildChapterVerse(
+  title: ValidBookName,
+  parts: TypedParts,
+  sub: string
+) {
+  return pipe(
+    sub,
+    isChapterVerse(parts.type),
     O.fromPredicate((is) => is),
     O.map(() => `${title} ${sub}`)
   );
@@ -266,4 +309,4 @@ function getIsMatch(type: SearchType, sub: string, matchData: MatchData) {
   );
 }
 
-export { getSubsAsTypedParts as getSubChapterVerses };
+export { getSubsAsTypedParts };
