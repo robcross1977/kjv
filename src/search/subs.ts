@@ -4,9 +4,9 @@ import * as O from "fp-ts/Option";
 import * as P from "fp-ts/Predicate";
 import { ValidBookName } from "./bible-meta";
 import { SearchType, TypedParts, getParams } from "./params";
-import { pipe } from "fp-ts/lib/function";
-import { getGroups } from "./regex";
+import { flow, pipe } from "fp-ts/function";
 import { makeChapterArray } from "./search-builder";
+import { IError, errorFrom } from "./error";
 
 // TODO: create moinoid to concat Searches
 
@@ -82,35 +82,36 @@ import { makeChapterArray } from "./search-builder";
 // New query: `${title} ${sub}`
 // -----------------------------------------------------------------------------
 
-function getSubsAsTypedParts(
+type SubsMsg = "no subs found";
+type SubsError = IError<SubsMsg>;
+
+function getSubsChapterArrays(
   title: ValidBookName,
   parts: TypedParts,
   subs: string[]
 ) {
   return pipe(
     subs,
-    A.scanLeft<string, TypedParts[]>([parts], (acc, sub) => {
+    A.scanLeft<string, TypedParts>(parts, (acc, sub) => {
       return pipe(
-        O.Do,
-        O.apS("prevParts", A.last(acc)),
-        O.bind("newQuery", ({ prevParts }) =>
-          getNewQuery(title, prevParts, sub)
-        ),
-        O.chain(({ newQuery }) => subQueryToTypedParts(acc, newQuery)),
+        getNewQuery(title, acc, sub),
+        O.chain(subQueryToTypedParts),
         O.getOrElseW(() => acc)
       );
     }),
-    A.last
-    //A.map(p => makeChapterArray(title, p))
+    A.tail,
+    E.fromOption<SubsError>(() => errorFrom<SubsMsg>("no subs found")),
+    E.chainW(
+      flow(
+        A.map((p) => makeChapterArray(title, p)),
+        E.sequenceArray
+      )
+    )
   );
 }
 
-function subQueryToTypedParts(acc: TypedParts[], query: string) {
-  return pipe(
-    getParams(query),
-    O.fromEither,
-    O.map((newParts) => [...acc, newParts])
-  );
+function subQueryToTypedParts(query: string) {
+  return pipe(getParams(query), O.fromEither);
 }
 
 function getNewQuery(title: ValidBookName, parts: TypedParts, sub: string) {
@@ -309,4 +310,4 @@ function getIsMatch(type: SearchType, sub: string, matchData: MatchData) {
   );
 }
 
-export { getSubsAsTypedParts };
+export { getSubsChapterArrays };

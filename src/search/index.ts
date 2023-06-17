@@ -7,6 +7,7 @@ import { ParamsError, TypedParts, getParams } from "./params";
 import { Search, makeChapterArray } from "./search-builder";
 import { IError, errorFrom } from "./error";
 import { getBookName } from "./bible-meta";
+import { getSubsChapterArrays } from "./subs";
 
 type SearchMsg = "no main found" | "book not found";
 type SearchError = IError<SearchMsg>;
@@ -36,7 +37,9 @@ function search(query: string) {
     E.bindW("mainChapterVerses", ({ title, parts }) =>
       makeChapterArray(title, parts)
     ),
-    //E.bind("subChapterVerses", ({ title, parts, subs}) => getSubChapterVerses(title, parts, subs)),
+    E.bindW("subChapterVerses", ({ title, parts, subs }) =>
+      getSubsChapterArrays(title, parts, ROA.toArray(subs))
+    ),
     //E.bind("combinedChapterVerses", ({ mainChapterVerses, subChapterVerses }) => combineChapterVerses(mainChapterVerses, subChapterVerses)
     E.bind("search", ({ title, mainChapterVerses }) =>
       E.right(<Search>{

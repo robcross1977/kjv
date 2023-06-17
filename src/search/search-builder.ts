@@ -84,7 +84,7 @@ function getVerseStart({
 
 function getVerseEnd(
   title: ValidBookName,
-  { type, chapterStart, chapterEnd, verseStart, verseEnd }: TypedParts
+  { type, chapterStart, verseStart, verseEnd }: TypedParts
 ): E.Either<SearchBuilderError | ParamsError, number> {
   switch (type) {
     case "book":

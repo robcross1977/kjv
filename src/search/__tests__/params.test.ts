@@ -10,12 +10,9 @@
 */
 
 import { getParams, ParamsError, TypedParts } from "../params";
-import { Either, left, right, map, mapLeft } from "fp-ts/Either";
+import { right, map, mapLeft } from "fp-ts/Either";
 import { pipe } from "fp-ts/lib/function";
-
-function valIsNull(): Either<ParamsError, number> {
-  return left({ msg: "value is null or undefined", err: "" });
-}
+import { lefty } from "../__mocks__/mocks";
 
 describe("The params module", () => {
   describe("The getParams function", () => {
@@ -25,10 +22,10 @@ describe("The params module", () => {
         {
           type: "book",
           book: right<ParamsError, string>("1 Song of Solomon"),
-          chapterStart: valIsNull(),
-          chapterEnd: valIsNull(),
-          verseStart: valIsNull(),
-          verseEnd: valIsNull(),
+          chapterStart: lefty,
+          chapterEnd: lefty,
+          verseStart: lefty,
+          verseEnd: lefty,
         },
       ],
       [
@@ -37,9 +34,9 @@ describe("The params module", () => {
           type: "chapter",
           book: right<ParamsError, string>("1 Song of Solomon"),
           chapterStart: right(1),
-          chapterEnd: valIsNull(),
-          verseStart: valIsNull(),
-          verseEnd: valIsNull(),
+          chapterEnd: lefty,
+          verseStart: lefty,
+          verseEnd: lefty,
         },
       ],
       [
@@ -48,9 +45,9 @@ describe("The params module", () => {
           type: "verse",
           book: right<ParamsError, string>("1 Song of Solomon"),
           chapterStart: right(1),
-          chapterEnd: valIsNull(),
+          chapterEnd: lefty,
           verseStart: right(2),
-          verseEnd: valIsNull(),
+          verseEnd: lefty,
         },
       ],
       [
@@ -59,7 +56,7 @@ describe("The params module", () => {
           type: "verse-range",
           book: right<ParamsError, string>("1 Song of Solomon"),
           chapterStart: right(1),
-          chapterEnd: valIsNull(),
+          chapterEnd: lefty,
           verseStart: right(2),
           verseEnd: right(3),
         },
@@ -82,8 +79,8 @@ describe("The params module", () => {
           book: right<ParamsError, string>("1 Song of Solomon"),
           chapterStart: right(1),
           chapterEnd: right(4),
-          verseStart: valIsNull(),
-          verseEnd: valIsNull(),
+          verseStart: lefty,
+          verseEnd: lefty,
         },
       ],
     ];

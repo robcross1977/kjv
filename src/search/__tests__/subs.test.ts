@@ -1,39 +1,64 @@
-import { errorFrom } from "../error";
-import { ParamsMsg, TypedParts } from "../params";
-import { getSubsAsTypedParts } from "../subs";
+import { TypedParts } from "../params";
+import { getSubsChapterArrays } from "../subs";
 import * as E from "fp-ts/Either";
-import * as O from "fp-ts/Option";
+import { johnMock, lefty } from "../__mocks__/mocks";
 
 describe("The Subs Module", () => {
   describe("The getSubsAsTypedParts function", () => {
-    it("should return a correct chapter/verse object for a book query with subs", () => {
-      // original 1 john, 3:4
+    it("should return a correct chapter object for a book query with a chapter sub", () => {
       const mainParts: TypedParts = {
         type: "book",
         book: E.right("1 john"),
-        chapterStart: E.left(
-          errorFrom<ParamsMsg>("value is null or undefined")
-        ),
-        chapterEnd: E.left(errorFrom<ParamsMsg>("value is null or undefined")),
-        verseStart: E.left(errorFrom<ParamsMsg>("value is null or undefined")),
-        verseEnd: E.left(errorFrom<ParamsMsg>("value is null or undefined")),
+        chapterStart: lefty,
+        chapterEnd: lefty,
+        verseStart: lefty,
+        verseEnd: lefty,
       };
-
-      const expected: O.Option<TypedParts[]> = O.some([
+      const expected = E.right([
         {
-          type: "verse",
-          book: E.right("1 john"),
-          chapterStart: E.right(3),
-          chapterEnd: E.left(
-            errorFrom<ParamsMsg>("value is null or undefined")
-          ),
-          verseStart: E.right(4),
-          verseEnd: E.left(errorFrom<ParamsMsg>("value is null or undefined")),
+          "3": johnMock["3"],
         },
       ]);
 
-      const result = getSubsAsTypedParts("1 john", mainParts, ["3:4"]);
-      console.log(JSON.stringify(result));
+      const result = getSubsChapterArrays("1 john", mainParts, ["3"]);
+      expect(result).toEqual(expected);
+    });
+
+    it("should return a correct chapter object for a chapter query with a chapter sub", () => {
+      const mainParts: TypedParts = {
+        type: "chapter",
+        book: E.right("1 john"),
+        chapterStart: E.right(2),
+        chapterEnd: lefty,
+        verseStart: lefty,
+        verseEnd: lefty,
+      };
+      const expected = E.right([
+        {
+          "3": johnMock["3"],
+        },
+      ]);
+
+      const result = getSubsChapterArrays("1 john", mainParts, ["3"]);
+      expect(result).toEqual(expected);
+    });
+
+    it("should return a correct chapter object for a chapter-range query with a chapter sub", () => {
+      const mainParts: TypedParts = {
+        type: "chapter-range",
+        book: E.right("1 john"),
+        chapterStart: E.right(2),
+        chapterEnd: lefty,
+        verseStart: lefty,
+        verseEnd: lefty,
+      };
+      const expected = E.right([
+        {
+          "3": johnMock["3"],
+        },
+      ]);
+
+      const result = getSubsChapterArrays("1 john", mainParts, ["3"]);
       expect(result).toEqual(expected);
     });
   });
