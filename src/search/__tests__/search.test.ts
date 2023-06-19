@@ -120,7 +120,7 @@ describe("The Search Module", () => {
     });
 
     it("should return searches with subs", () => {
-      const input = "1 John 1, 2-3 4:1, 4:3-6, 4:19-5:2";
+      const input = "1 John 1, 2-3, 4:1, 4:3-6, 4:19-5:2";
       const expected = E.right({
         "1 john": {
           1: OneJohn["1 john"][1],

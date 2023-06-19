@@ -125,10 +125,10 @@ function search(query: string) {
         concatChapters([mainChapterVerses, ...ROA.toArray(subChapterVerses)])
       )
     ),
-    E.bind("search", ({ title, mainChapterVerses }) =>
+    E.bind("search", ({ title, combinedChapterVerses }) =>
       E.right(<Search>{
         name: title,
-        chapters: mainChapterVerses,
+        chapters: combinedChapterVerses,
       })
     ),
     E.chainW(({ search }) =>
