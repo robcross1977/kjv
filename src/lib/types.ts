@@ -17,7 +17,7 @@ interface Book {
 
 type Chapters = Record<string, Set<number>>;
 type Search = {
-  name: ValidBookName;
+  name?: ValidBookName;
   chapters: Chapters;
 };
 

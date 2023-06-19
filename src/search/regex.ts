@@ -7,15 +7,17 @@ type RegexMsg = "no groups found";
 export type RegexError = IError<RegexMsg>;
 
 /**
- * The ones, twos and threes regex strings are to search for the number (or one of its variations)
- * at the front of the book name. Examples: 1 Thessalonians, Three John, ii Timothy, etc.
+ * The ones, twos and threes regex strings are to search for the number (or one
+ * of its variations) at the front of the book name. Examples: 1 Thessalonians,
+ * Three John, ii Timothy, etc.
  */
 const ones = `1(st)?|i\\s+|one|fst|fir(s(t)?)?` as const;
 const twos = `2(nd)?|ii\\s+|two|sec(o(n(d)?)?)?` as const;
 const threes = `3(rd)?|iii\\s+|th((r(e(e)?)?)?|(i(r(d)?)?)?)?` as const;
 
 /**
- * The nonnamechars regex string is to search for any characters that are not part of the book name.
+ * The nonnamechars regex string is to search for any characters that are not
+ * part of the book name.
  */
 const nonNameChars = `[\\d|:|-|_|\\s]`;
 
@@ -50,13 +52,13 @@ const chapterVerseChapterStart = wrapCap(
   "\\d{1,3}"
 );
 const chapterVerseVerseStart = wrapCap("chapterVerseVerseStart", "\\d{1,3}");
-const mandatory = `${chapterVerseChapterStart}\\s*:\\s*${chapterVerseVerseStart}`;
+const mando = `${chapterVerseChapterStart}\\s*:\\s*${chapterVerseVerseStart}`;
 const chapterVerseChapterEnd = wrapNonCap(
   `(?=\\d{1,3}\\s*:)${wrapCap("chapterVerseChapterEnd", "\\d{1,3}")}\\s*:`
 );
 const chapterVerseVerseEnd = wrapCap("chapterVerseVerseEnd", "\\d{1,3}");
 const optional = `-?\\s*${chapterVerseChapterEnd}?\\s*${chapterVerseVerseEnd}?`;
-const chapterVerse = wrapNonCap(`${mandatory}\\s*${optional}?\\s*$`);
+const chapterVerse = wrapNonCap(`${mando}\\s*${optional}?\\s*$`);
 
 // Chapter Range
 const chapterRangeChapterStart = wrapCap(

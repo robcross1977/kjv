@@ -4,12 +4,15 @@ import * as ROA from "fp-ts/ReadonlyArray";
 import * as RONEA from "fp-ts/ReadonlyNonEmptyArray";
 import * as S from "fp-ts/string";
 import { ParamsError, TypedParts, getParams } from "./params";
-import { Search, makeChapterArray } from "./search-builder";
+import { Search, concatChapters, makeChapterArray } from "./search-builder";
 import { IError, errorFrom } from "./error";
 import { getBookName } from "./bible-meta";
 import { getSubsChapterArrays } from "./subs";
 
-type SearchMsg = "no main found" | "book not found";
+type SearchMsg =
+  | "no main found"
+  | "book not found"
+  | "unable to concat searches";
 type SearchError = IError<SearchMsg>;
 
 /**
@@ -22,13 +25,15 @@ function search(query: string) {
   return pipe(
     E.Do,
 
-    // Split the query into parts on the comma, the first part being the main part, the rest being subs
+    // Split the query into parts on the comma, the first part being the main
+    // part, the rest being subs
     E.bind("splits", () => getSplits(query)),
 
     // Get the main part from the splits
     E.bind("main", ({ splits }) => getMain(splits)),
 
-    // Get the sub parts from the splits. The sub-parts are comma-seperated values after the main part.
+    // Get the sub parts from the splits. The sub-parts are comma-seperated
+    // values after the main part.
     // Example: John 3:16,18-20,22-24
     E.bind("subs", ({ splits }) => getSubs(splits)),
 
@@ -40,7 +45,11 @@ function search(query: string) {
     E.bindW("subChapterVerses", ({ title, parts, subs }) =>
       getSubsChapterArrays(title, parts, ROA.toArray(subs))
     ),
-    //E.bind("combinedChapterVerses", ({ mainChapterVerses, subChapterVerses }) => combineChapterVerses(mainChapterVerses, subChapterVerses)
+    E.bind("combinedChapterVerses", ({ mainChapterVerses, subChapterVerses }) =>
+      E.right(
+        concatChapters([mainChapterVerses, ...ROA.toArray(subChapterVerses)])
+      )
+    ),
     E.bind("search", ({ title, mainChapterVerses }) =>
       E.right(<Search>{
         name: title,
@@ -48,9 +57,6 @@ function search(query: string) {
       })
     ),
     E.map(({ search }) => search)
-    // add subs to chapter verses (might use that function that is like reduce but keeps the state)
-    // get final bible search result
-
     // query the sql database and return the result
   );
 }

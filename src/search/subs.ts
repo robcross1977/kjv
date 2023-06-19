@@ -62,6 +62,16 @@ import { IError, errorFrom } from "./error";
 // New query: `${title} ${previous.chapter}:${sub}`
 //
 // -----------------------------------------------------------------------------
+// FULL VERSE RANGE
+// -----------------------------------------------------------------------------
+// Sub Regex: \d{1,3}:\d{1,3}-\d{1,3}
+//
+// This regex will be recognized as a full-verse-range match no matter the
+// previous part.
+//
+// New query: `${title} ${previous.chapter}:${sub}`
+//
+// -----------------------------------------------------------------------------
 // MULTI-CHAPTER VERSE
 // -----------------------------------------------------------------------------
 // Sub Regex: \d{1,3}-\d{1,3}:\d{1,3}

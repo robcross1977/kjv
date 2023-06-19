@@ -4,6 +4,7 @@ import * as A from "fp-ts/Array";
 import * as ROA from "fp-ts/ReadonlyArray";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
+import { Monoid, concatAll } from "fp-ts/Monoid";
 import * as N from "fp-ts/number";
 import * as R from "fp-ts/Record";
 import { fromArray } from "fp-ts/Set";
@@ -15,14 +16,28 @@ import {
   verseCountFrom,
 } from "./bible-meta";
 import { IError, errorFrom } from "./error";
-import { Search } from "../lib/types";
+import { Chapters, Search } from "../lib/types";
+import { Magma } from "fp-ts/Magma";
 
-type SearchBuilderMsg = "verse not found";
+type SearchBuilderMsg =
+  | "verse not found"
+  | "can't concat searches with different names";
 type SearchBuilderError = IError<SearchBuilderMsg>;
 
 function makeChapterArray(title: ValidBookName, parts: TypedParts) {
   return buildSearchArray(title, parts);
 }
+
+const SetNumberMagma: Magma<Set<number>> = {
+  concat: (first, second) => fromArray(N.Ord)([...first, ...second]),
+};
+
+const chaptersMonoid: Monoid<Chapters> = {
+  concat: (first, second) => R.union(SetNumberMagma)(second)(first),
+  empty: {},
+};
+
+const concatChapters = concatAll(chaptersMonoid);
 
 function getChapterStart({
   type,
@@ -329,4 +344,4 @@ function getVerseRangeForContainedChapter(
   );
 }
 
-export { Search, makeChapterArray };
+export { Search, makeChapterArray, concatChapters };
