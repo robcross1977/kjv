@@ -917,4 +917,4 @@ const Zechariah: Book = {
   ],
 };
 
-export default Zechariah;
+export { Zechariah };
