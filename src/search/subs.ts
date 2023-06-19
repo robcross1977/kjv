@@ -8,8 +8,6 @@ import { flow, pipe } from "fp-ts/function";
 import { makeChapterArray } from "./search-builder";
 import { IError, errorFrom } from "./error";
 
-// TODO: create moinoid to concat Searches
-
 // POSSIBLE SUBS
 // -----------------------------------------------------------------------------
 // CHAPTER

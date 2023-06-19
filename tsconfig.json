@@ -29,5 +29,5 @@
     /* Completeness */
     "skipLibCheck": true
   },
-  "exclude": ["node_modules", "__tests__", "__mocks__"]
+  "exclude": ["node_modules", "seed", "__tests__", "__mocks__"]
 }

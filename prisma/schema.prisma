@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url = "file:../src/db/kjv.db"
+  url = "file:./kjv.db"
 }
 
 model Book {
