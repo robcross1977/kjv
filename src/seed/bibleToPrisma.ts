@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { pipe } from "fp-ts/function";
 import { map } from "fp-ts/Array";
-import { Book, Chapter, Verse } from "../lib/types";
+import { Book, Chapter, Verse } from "../search/types";
 
 function bibleToPrisma(book: Book): Prisma.BookCreateArgs {
   return {

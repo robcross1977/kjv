@@ -3,7 +3,7 @@ import { IError, errorFrom } from "./error";
 import { ParamsError, TypedParts, getParams } from "./params";
 import { concatChapters, makeChapterArray, Search } from "./search-builder";
 import { getSubsChapterArrays } from "./subs";
-import { Book } from "../lib/types";
+import { Book } from "./types";
 import {
   OneChronicles,
   OneCorinthians,
@@ -199,12 +199,12 @@ function getResult(search: Search) {
         R.keys,
 
         // Map through the keys to get the chapters
-        A.map((k) =>
+        A.map((key) =>
           pipe(
             O.Do,
 
             // The chapter is just the key itself as a Number
-            O.apS("chapter", pipe(k, Number, O.of)),
+            O.apS("chapter", pipe(key, Number, O.of)),
 
             // Get the verses we are searching for from the search object
             O.bind("verses", ({ chapter }) =>
@@ -212,24 +212,24 @@ function getResult(search: Search) {
                 O.Do,
 
                 // Get the search chapter to search (the value in the k/v pair)
-                O.apS("chapterToSearch", pipe(search.chapters[chapter], O.of)),
+                O.apS("searchChapter", pipe(search.chapters[chapter], O.of)),
 
                 // Filter the bookJson object to only include the verses from the
                 // json object that are present in the search object
-                O.map(({ chapterToSearch }) =>
+                O.map(({ searchChapter }) =>
                   pipe(
-                    bookJson.chapters[chapter].verses,
-                    A.filter((v) => S.elem(Eq)(v.number)(chapterToSearch))
+                    bookJson[search.name][chapter],
+                    R.filterWithIndex((k, _) => {
+                      return S.elem(Eq)(Number(k), searchChapter);
+                    })
                   )
                 )
               )
             ),
-            O.map(({ chapter, verses }) => {
-              return {
-                number: chapter,
-                verses,
-              };
-            })
+            O.map(
+              ({ chapter, verses }) =>
+                <[string, Record<string, string>]>[String(chapter), verses]
+            )
           )
         ),
         O.sequenceArray
@@ -237,8 +237,7 @@ function getResult(search: Search) {
     ),
     O.map(({ bookName, chapters }) => {
       return <Book>{
-        name: bookName,
-        chapters,
+        [bookName]: R.fromEntries(ROA.toArray(chapters)),
       };
     })
   );
