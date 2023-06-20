@@ -14,7 +14,22 @@ not allow you to do anything larger than a chapter query.
 ## Search
 
 All you need to do to use search is install the library with npm, import the
-`search` function into your code and pass it a bible query in string form.
+`search` function into your code and pass it a bible query in string form. The
+search function takes a single string (the query).
+
+Basic Usage:# KJV Library
+The KJV library contains useful functionality to retrieve data from the KJV
+of the bible. Currently, it can parse search functions without need of a
+database as the KJV never needs updating so we can just grab what we want from
+static files and skip any network hops and work offline. That said, the
+library download will be quite a bit bigger. If you wish to use an online
+service that uses a database I've provided an API written in Rust with AXUM
+that you can find here: https://github.com/robcross1977/bible-api-rust
+
+Please note: the api works differently and expects a web interface so it will
+not allow you to do anything larger than a chapter query.
+
+`search('1 John 4:6')`
 
 ## Search Formats
 
