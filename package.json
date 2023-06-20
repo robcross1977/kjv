@@ -1,5 +1,5 @@
 {
-  "name": "kjv",
+  "name": "@robcross1977/kjv",
   "version": "0.0.1",
   "description": "A King James Bible search library, currently no database requried",
   "main": "./src/index.js",
