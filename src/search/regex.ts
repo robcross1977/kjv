@@ -104,10 +104,20 @@ function wrapNonCap(internal: string = "") {
   );
 }
 
+// The build function takes a regex and some flags and returns a new regex
 function build(regex: string | RegExp, flags?: string) {
   return new RegExp(regex, flags);
 }
 
+/**
+ * The getGroups function takes a regex and some flags and returns a function
+ * that can be used to search for groups that were in the match. The groups will
+ * be wrapped in an Either, but if they don't exist it will be an error (Left)
+ * @param regex The regex to search for
+ * @param flags The flags for the regex
+ * @returns An either holding a Record<TType, string> or a RegexError, wrapped
+ * in an Either
+ */
 function getGroups<TType extends string>(
   regex: string | RegExp,
   flags?: string
@@ -116,8 +126,14 @@ function getGroups<TType extends string>(
     search: string
   ): E.Either<RegexError, Record<TType, string>> {
     return pipe(
+      // Build the regex, execute it and attempt to grab the groups or undefined
       build(regex, flags).exec(search)?.groups,
+
+      // If the groups are undefined, return an error
       E.fromNullable<RegexError>(errorFrom<RegexMsg>("no groups found")),
+
+      // If the groups are not undefined then we need to coerce them to the
+      // correct type (Record<TType, string>) and return them
       E.map((i) =>
         unsafeCoerce<Record<string, string>, Record<TType, string>>(i)
       )
