@@ -1,7 +1,7 @@
-import { Prisma } from "@prisma/client";
 import prisma from "../lib/prisma";
-import { pipe } from "fp-ts/function";
 import { BookRecords, ChapterRecords, VerseRecords } from "../lib/types";
+import { Prisma } from "@prisma/client";
+import { pipe } from "fp-ts/function";
 import * as A from "fp-ts/Array";
 import * as R from "fp-ts/Record";
 

@@ -1,7 +1,7 @@
-import { pipe, unsafeCoerce } from "fp-ts/function";
-import * as O from "fp-ts/Option";
-import * as E from "fp-ts/Either";
 import { errorFrom, IError } from "./error";
+import { pipe, unsafeCoerce } from "fp-ts/function";
+import * as E from "fp-ts/Either";
+import * as O from "fp-ts/Option";
 
 type RegexMsg = "no groups found";
 export type RegexError = IError<RegexMsg>;

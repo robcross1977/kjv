@@ -1,13 +1,3 @@
-import { absurd, pipe } from "fp-ts/function";
-import { ParamsError, TypedParts } from "./params";
-import * as A from "fp-ts/Array";
-import * as ROA from "fp-ts/ReadonlyArray";
-import * as E from "fp-ts/Either";
-import * as O from "fp-ts/Option";
-import { Monoid, concatAll } from "fp-ts/Monoid";
-import * as N from "fp-ts/number";
-import * as R from "fp-ts/Record";
-import { fromArray } from "fp-ts/Set";
 import {
   ValidBookName,
   chapterCountFrom,
@@ -17,35 +7,80 @@ import {
 } from "./bible-meta";
 import { IError, errorFrom } from "./error";
 import { Chapters, Search } from "../lib/types";
+import { ParamsError, TypedParts } from "./params";
+import { absurd, pipe } from "fp-ts/function";
 import { Magma } from "fp-ts/Magma";
+import { Monoid, concatAll } from "fp-ts/Monoid";
+import { fromArray } from "fp-ts/Set";
+import * as A from "fp-ts/Array";
+import * as E from "fp-ts/Either";
+import * as N from "fp-ts/number";
+import * as O from "fp-ts/Option";
+import * as R from "fp-ts/Record";
+import * as ROA from "fp-ts/ReadonlyArray";
 
 type SearchBuilderMsg =
   | "verse not found"
   | "can't concat searches with different names";
 type SearchBuilderError = IError<SearchBuilderMsg>;
 
+/**
+ * The makeChapterArray function takes the book name and the parts and returns
+ * an object holding the actual data (book/chapter/verses) we want to search
+ * for wrapped in a Record<string, Set<number>>, the key being the chapter
+ * number and the Set<number> being the verses we want to find in that chapter.
+ * 
+ * @param title The ValidBookName we are going to build a search object for.
+ * @param parts The TypedParts we'll use as the parameters
+ * @returns a Record<string, Set<number>> holding the actual data we want to
+ * search for, wrapped in an Either. The key is the chapter number and the
+ * Set<number> is the verses we want to find in that chapter.
+ */
 function makeChapterArray(title: ValidBookName, parts: TypedParts) {
   return buildSearchArray(title, parts);
 }
 
+// The SetNumberMagma is used to describe how to concat the Set<number> values
+// in our search object tha tdefine the verses we want to search for within a
+// chapter. We might have many sub-searches, each with their own Set<number>
+// and this joins them together.
 const SetNumberMagma: Magma<Set<number>> = {
   concat: (first, second) => fromArray(N.Ord)([...first, ...second]),
 };
 
+// The chapterMonoid object describes how to join two chapters together, the
+// main purpose being so that we can use the monoid that describes how to join
+// two objects to pass to the concatAll function which creates a function that
+// can be used to join as many chapters together as we want based on the monoid.
 const chaptersMonoid: Monoid<Chapters> = {
+  // With a monoid you must designate a concat function describing how to join
+  // two Chapters together. In this case we use the R.union function to join
+  // them together as each chapter is a Record. 
   concat: (first, second) => R.union(SetNumberMagma)(second)(first),
+
+  // A monoid must also include a definition for "empty"
   empty: {},
 };
 
+// The concatAll takes a Monoid desribing how to concat two Chapters together 
+// and builds a function that can be used to concat as many chapters as we want
+// together from it. 
 const concatChapters = concatAll(chaptersMonoid);
 
+// The getChapterStart function takes a searchType and the chapterStart, and
+// based on the searchType returns the chapterStart or 1.
 function getChapterStart({
   type,
   chapterStart,
 }: TypedParts): E.Either<SearchBuilderError | ParamsError, number> {
   switch (type) {
+    // If we have a book search no chapterStart is provided so we return 1 since
+    // 1 is the default chapterStart for a book search.
     case "book":
       return E.right(1);
+    // In the cases of chapter, verse, verse-range, chapter-range,
+    // multi-chapter-verse or full range a chapterStart must be provided so we
+    // will use it
     case "chapter":
     case "verse":
     case "verse-range":
@@ -53,26 +88,41 @@ function getChapterStart({
     case "multi-chapter-verse":
     case "full-range":
       return chapterStart;
+    // In the case of an invalid searchType we return an error
     default:
       return absurd(type);
   }
 }
 
+// The getChapterEnd function takes a title, a searchType, the chapterStart and
+// chapterEnd and calculates the chapterEnd based on the context. For a book
+// no chapterEnd will be provided so we want the number of chapters. For a
+// chapter, verse or verse-range search the chapterEnd will be the same as the
+// chapterStart so we'll just use the chapterStart. For a chapter-range,
+// multi-chapter-verse or full-range search the chapterEnd will be provided so
+// we'll use it.
 function getChapterEnd(
   title: ValidBookName,
   { type, chapterStart, chapterEnd }: TypedParts
 ): E.Either<SearchBuilderError | ParamsError, number> {
   switch (type) {
+    // For a book search the chapterEnd is the number of chapters in the book
+    // as the chapterEnd is not provided. 
     case "book":
       return pipe(chapterCountFrom(title), E.right);
+    // For a chapter, verse or verse-range search the chapterEnd is the same as
+    // the chapterStart so we'll use the chapterStart. 
     case "chapter":
     case "verse":
     case "verse-range":
       return chapterStart;
+    // For a chapter-range, multi-chapter-verse or full-range search the
+    // chapterEnd is provided so we'll use it.
     case "chapter-range":
     case "multi-chapter-verse":
     case "full-range":
       return chapterEnd;
+    // For an invalid searchType we return an error
     default:
       return absurd(type);
   }
