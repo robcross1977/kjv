@@ -1,4 +1,4 @@
-import { OneJohn } from "../books";
+import { kjv } from "../../kjv";
 import { search } from "../search";
 import * as E from "fp-ts/Either";
 
@@ -6,7 +6,9 @@ describe("The Search Module", () => {
   describe("The getFinalResult function", () => {
     it("should return a Book object", () => {
       const input = "1 John";
-      const expected = E.right(OneJohn);
+      const expected = E.right({
+        "1 john": kjv["1 john"],
+      });
 
       const result = search(input);
 
@@ -16,7 +18,7 @@ describe("The Search Module", () => {
     it("should return a chapter object", () => {
       const input = "1 John 1";
       const expected = E.right({
-        "1 john": { 1: OneJohn["1 john"][1] },
+        "1 john": { 1: kjv["1 john"][1] },
       });
 
       const result = search(input);
@@ -28,9 +30,9 @@ describe("The Search Module", () => {
       const input = "1 John 2-4";
       const expected = E.right({
         "1 john": {
-          2: OneJohn["1 john"][2],
-          3: OneJohn["1 john"][3],
-          4: OneJohn["1 john"][4],
+          2: kjv["1 john"][2],
+          3: kjv["1 john"][3],
+          4: kjv["1 john"][4],
         },
       });
 
@@ -44,7 +46,7 @@ describe("The Search Module", () => {
       const expected = E.right({
         "1 john": {
           2: {
-            4: OneJohn["1 john"][2][4],
+            4: kjv["1 john"][2][4],
           },
         },
       });
@@ -59,10 +61,10 @@ describe("The Search Module", () => {
       const expected = E.right({
         "1 john": {
           2: {
-            4: OneJohn["1 john"][2][4],
-            5: OneJohn["1 john"][2][5],
-            6: OneJohn["1 john"][2][6],
-            7: OneJohn["1 john"][2][7],
+            4: kjv["1 john"][2][4],
+            5: kjv["1 john"][2][5],
+            6: kjv["1 john"][2][6],
+            7: kjv["1 john"][2][7],
           },
         },
       });
@@ -76,13 +78,13 @@ describe("The Search Module", () => {
       const input = "1 John 2-4:4";
       const expected = E.right({
         "1 john": {
-          2: OneJohn["1 john"][2],
-          3: OneJohn["1 john"][3],
+          2: kjv["1 john"][2],
+          3: kjv["1 john"][3],
           4: {
-            1: OneJohn["1 john"][4][1],
-            2: OneJohn["1 john"][4][2],
-            3: OneJohn["1 john"][4][3],
-            4: OneJohn["1 john"][4][4],
+            1: kjv["1 john"][4][1],
+            2: kjv["1 john"][4][2],
+            3: kjv["1 john"][4][3],
+            4: kjv["1 john"][4][4],
           },
         },
       });
@@ -97,19 +99,19 @@ describe("The Search Module", () => {
       const expected = E.right({
         "1 john": {
           2: {
-            25: OneJohn["1 john"][2][25],
-            26: OneJohn["1 john"][2][26],
-            27: OneJohn["1 john"][2][27],
-            28: OneJohn["1 john"][2][28],
-            29: OneJohn["1 john"][2][29],
+            25: kjv["1 john"][2][25],
+            26: kjv["1 john"][2][26],
+            27: kjv["1 john"][2][27],
+            28: kjv["1 john"][2][28],
+            29: kjv["1 john"][2][29],
           },
-          3: OneJohn["1 john"][3],
+          3: kjv["1 john"][3],
           4: {
-            1: OneJohn["1 john"][4][1],
-            2: OneJohn["1 john"][4][2],
-            3: OneJohn["1 john"][4][3],
-            4: OneJohn["1 john"][4][4],
-            5: OneJohn["1 john"][4][5],
+            1: kjv["1 john"][4][1],
+            2: kjv["1 john"][4][2],
+            3: kjv["1 john"][4][3],
+            4: kjv["1 john"][4][4],
+            5: kjv["1 john"][4][5],
           },
         },
       });
@@ -123,22 +125,22 @@ describe("The Search Module", () => {
       const input = "1 John 1, 2-3, 4:1, 4:3-6, 4:19-5:2";
       const expected = E.right({
         "1 john": {
-          1: OneJohn["1 john"][1],
-          2: OneJohn["1 john"][2],
-          3: OneJohn["1 john"][3],
+          1: kjv["1 john"][1],
+          2: kjv["1 john"][2],
+          3: kjv["1 john"][3],
           4: {
-            1: OneJohn["1 john"][4][1],
-            3: OneJohn["1 john"][4][3],
-            4: OneJohn["1 john"][4][4],
-            5: OneJohn["1 john"][4][5],
-            6: OneJohn["1 john"][4][6],
-            19: OneJohn["1 john"][4][19],
-            20: OneJohn["1 john"][4][20],
-            21: OneJohn["1 john"][4][21],
+            1: kjv["1 john"][4][1],
+            3: kjv["1 john"][4][3],
+            4: kjv["1 john"][4][4],
+            5: kjv["1 john"][4][5],
+            6: kjv["1 john"][4][6],
+            19: kjv["1 john"][4][19],
+            20: kjv["1 john"][4][20],
+            21: kjv["1 john"][4][21],
           },
           5: {
-            1: OneJohn["1 john"][5][1],
-            2: OneJohn["1 john"][5][2],
+            1: kjv["1 john"][5][1],
+            2: kjv["1 john"][5][2],
           },
         },
       });

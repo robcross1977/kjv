@@ -3,76 +3,9 @@ import { IError, errorFrom } from "./error";
 import { ParamsError, TypedParts, getParams } from "./params";
 import { concatChapters, makeChapterArray, Search } from "./search-builder";
 import { getSubsChapterArrays } from "./subs";
-import { BookRecords } from "../lib/types";
-import {
-  OneChronicles,
-  OneCorinthians,
-  OneJohn,
-  OneKings,
-  OnePeter,
-  OneSamuel,
-  OneThessalonians,
-  OneTimothy,
-  TwoChronicles,
-  TwoCorinthians,
-  TwoJohn,
-  TwoKings,
-  TwoPeter,
-  TwoSamuel,
-  TwoThessalonians,
-  TwoTimothy,
-  ThreeJohn,
-  Acts,
-  Amos,
-  Colossians,
-  Daniel,
-  Deuteronomy,
-  Ecclesiastes,
-  Ephesians,
-  Esther,
-  Exodus,
-  Ezekiel,
-  Ezra,
-  Galatians,
-  Genesis,
-  Habakkuk,
-  Haggai,
-  Hebrews,
-  Hosea,
-  Isaiah,
-  James,
-  Jeremiah,
-  Job,
-  Joel,
-  John,
-  Jonah,
-  Joshua,
-  Jude,
-  Judges,
-  Lamentations,
-  Leviticus,
-  Luke,
-  Malachi,
-  Mark,
-  Matthew,
-  Micah,
-  Nahum,
-  Nehemiah,
-  Numbers,
-  Obadiah,
-  Philemon,
-  Philippians,
-  Proverbs,
-  Psalms,
-  Revelation,
-  Romans,
-  Ruth,
-  SongOfSolomon,
-  Titus,
-  Zechariah,
-  Zephaniah,
-} from "../search/books";
-import { absurd, pipe } from "fp-ts/function";
+import { BookRecords, ChapterRecords } from "../lib/types";
+import { kjv } from "../kjv";
+import { pipe } from "fp-ts/function";
 import { Eq } from "fp-ts/number";
 import * as A from "fp-ts/Array";
 import * as E from "fp-ts/Either";
@@ -189,7 +122,7 @@ function getResult(search: Search) {
   return pipe(
     O.Do,
     O.apS("bookName", O.of(search.name)),
-    O.apS("bookJson", O.of(getBookJson(search.name))),
+    O.apS("bookJson", O.of(getChapterRecordsByBook(search.name))),
     O.bind("chapters", ({ bookJson }) =>
       pipe(
         // Get the chapters
@@ -218,7 +151,7 @@ function getResult(search: Search) {
                 // json object that are present in the search object
                 O.map(({ searchChapter }) =>
                   pipe(
-                    bookJson[search.name][chapter],
+                    bookJson[chapter],
                     R.filterWithIndex((k, _) => {
                       return S.elem(Eq)(Number(k), searchChapter);
                     })
@@ -243,143 +176,8 @@ function getResult(search: Search) {
   );
 }
 
-function getBookJson(book: ValidBookName): BookRecords {
-  switch (book) {
-    case "1 chronicles":
-      return OneChronicles;
-    case "1 corinthians":
-      return OneCorinthians;
-    case "1 john":
-      return OneJohn;
-    case "1 kings":
-      return OneKings;
-    case "1 peter":
-      return OnePeter;
-    case "1 samuel":
-      return OneSamuel;
-    case "1 thessalonians":
-      return OneThessalonians;
-    case "1 timothy":
-      return OneTimothy;
-    case "2 chronicles":
-      return TwoChronicles;
-    case "2 corinthians":
-      return TwoCorinthians;
-    case "2 john":
-      return TwoJohn;
-    case "2 kings":
-      return TwoKings;
-    case "2 peter":
-      return TwoPeter;
-    case "2 samuel":
-      return TwoSamuel;
-    case "2 thessalonians":
-      return TwoThessalonians;
-    case "2 timothy":
-      return TwoTimothy;
-    case "3 john":
-      return ThreeJohn;
-    case "acts":
-      return Acts;
-    case "amos":
-      return Amos;
-    case "colossians":
-      return Colossians;
-    case "daniel":
-      return Daniel;
-    case "deuteronomy":
-      return Deuteronomy;
-    case "ecclesiastes":
-      return Ecclesiastes;
-    case "ephesians":
-      return Ephesians;
-    case "esther":
-      return Esther;
-    case "exodus":
-      return Exodus;
-    case "ezekiel":
-      return Ezekiel;
-    case "ezra":
-      return Ezra;
-    case "galatians":
-      return Galatians;
-    case "genesis":
-      return Genesis;
-    case "habakkuk":
-      return Habakkuk;
-    case "haggai":
-      return Haggai;
-    case "hebrews":
-      return Hebrews;
-    case "hosea":
-      return Hosea;
-    case "isaiah":
-      return Isaiah;
-    case "james":
-      return James;
-    case "jeremiah":
-      return Jeremiah;
-    case "job":
-      return Job;
-    case "joel":
-      return Joel;
-    case "john":
-      return John;
-    case "jonah":
-      return Jonah;
-    case "joshua":
-      return Joshua;
-    case "jude":
-      return Jude;
-    case "judges":
-      return Judges;
-    case "lamentations":
-      return Lamentations;
-    case "leviticus":
-      return Leviticus;
-    case "luke":
-      return Luke;
-    case "malachi":
-      return Malachi;
-    case "mark":
-      return Mark;
-    case "matthew":
-      return Matthew;
-    case "micah":
-      return Micah;
-    case "nahum":
-      return Nahum;
-    case "nehemiah":
-      return Nehemiah;
-    case "numbers":
-      return Numbers;
-    case "obadiah":
-      return Obadiah;
-    case "philemon":
-      return Philemon;
-    case "philippians":
-      return Philippians;
-    case "proverbs":
-      return Proverbs;
-    case "psalms":
-      return Psalms;
-    case "revelation":
-      return Revelation;
-    case "romans":
-      return Romans;
-    case "ruth":
-      return Ruth;
-    case "song of solomon":
-      return SongOfSolomon;
-    case "titus":
-      return Titus;
-    case "zechariah":
-      return Zechariah;
-    case "zephaniah":
-      return Zephaniah;
-    default:
-      return absurd(book);
-  }
+function getChapterRecordsByBook(book: ValidBookName): ChapterRecords {
+  return kjv[book];
 }
 
 export { search };
