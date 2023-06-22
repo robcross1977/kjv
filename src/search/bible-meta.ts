@@ -1,9 +1,9 @@
+import { nonNameChars, ones, twos, threes } from "./regex";
+import { Bounded, clamp } from "fp-ts/Bounded";
 import { pipe } from "fp-ts/function";
 import { findFirst } from "fp-ts/ReadonlyArray";
-import { nonNameChars, ones, twos, threes } from "./regex";
-import * as O from "fp-ts/Option";
-import { Bounded, clamp } from "fp-ts/Bounded";
 import * as N from "fp-ts/number";
+import * as O from "fp-ts/Option";
 
 const bookNames = [
   "1 chronicles",
@@ -74,21 +74,50 @@ const bookNames = [
   "zephaniah",
 ] as const;
 type BookNames = typeof bookNames;
+
+/**
+ * ValidBookName
+ * @description The ValidBookName type is a union of all the valid book names
+ */
 type ValidBookName = BookNames[number];
 
+/**
+ * The getBookName function takes a string, that may or may not be a book name
+ * in the form of a "ValidBookName", uses some regex and gets the first match
+ * from the bookNames array, which you can use in other parts of your program.
+ * 
+ * This is to make it easy to take in a free form search, but then get a
+ * concrete type for the book name. 
+ * 
+ * @param search The free-form search string
+ * @returns An Option containing a ValidBookName if one is found, or none
+ * otherwise
+ */
 function getBookName(search: string) {
   return pipe(
+    // Take the bookNames array
     bookNames,
+
+    // Find a match for the search string
     findFirst((b) => matchKey([b, search]))
   );
 }
 
+// A match candidate is a tuple of a book name and a search string. The book
+// name is a ValidBookName to match against, and the search string is the
+// string input by the user. 
 type MatchCandidate = [book: ValidBookName, search: string];
 
+// The matchKey function takes a matchCandidate, gets a regex for the book
+// portion of the match candidate, then tests the search against it to see if
+// it is a match. 
 function matchKey([book, search]: MatchCandidate): boolean {
   return new RegExp(bookMeta[book].match, "i").test(search);
 }
 
+// The BibleMeta type is data about the Bible. It is a Record of ValidBookNames
+// to an object containing a regex to match against, and a Record of verse
+// counts that are indexed by the chapter number for that book. 
 type BibleMeta = Record<
   ValidBookName,
   {
@@ -97,80 +126,221 @@ type BibleMeta = Record<
   }
 >;
 
+// The chapterCountFrom function takes a ValidBookName and returns the number
+// of chapters in that book. 
 function chapterCountFrom(book: ValidBookName): number {
   return Object.keys(bookMeta[book].verseCounts).length;
 }
 
+/**
+ * The getChapterRangeFromParts function takes a book name, a min and a max
+ * number for the chapter range requested. It returns a tuple of the min and
+ * max chapter number, in the corrected order if need be, clamped between 1
+ * and the number of chapters in the book.
+ * 
+ * @param book The book to get the range from
+ * @param min The minimum requested chapter number
+ * @param max The maximum requested chapter number
+ * @returns A range of chapter numbers for the book that are clamped between 1
+ * and the number of chapters in the book. 
+ */
 function getChapterRangeFromParts(
   book: ValidBookName,
   min: number,
   max: number
 ): [min: number, max: number] {
-  const numChapters = chapterCountFrom(book);
-  const boundedRange: Bounded<number> = {
-    bottom: 1,
-    top: numChapters,
-    compare: N.Ord.compare,
-    equals: N.Ord.equals,
-  };
+  return pipe(
+    O.Do,
 
-  const start = clamp(boundedRange)(min < max ? min : max);
-  const end = clamp(boundedRange)(max > min ? max : min);
+    // Get the number of chapters in the book
+    O.apS("numChapters", pipe(chapterCountFrom(book), O.of)),
+   
+    // Get a bounded range from 1 to the number of chapters in the book
+    // in the case the user asked for chapters outside of reality
+    O.bind("boundedRange", ({numChapters}) => 
+      getBounds(numChapters),
+    ),
 
-  return [start, end];
+    // Get the clamped lower bound
+    O.bind("start", ({boundedRange}) => clampStart(min, max, boundedRange)),
+
+    // Get the clamped upper bound
+    O.bind("end", ({boundedRange}) => clampEnd(min, max, boundedRange)),
+
+    // Map the results into a tuple containing the min and max
+    O.map(({start, end}) => <[min: number, max: number]>[start, end]),
+
+    // Get the value from the option. Note: this should never fail because
+    // there is nothing in it to fail, but I couldn't figure out how to get
+    // absurd to work here, which I'd have preferred. 
+    O.getOrElse<[min: number, max: number]>(() => [1, 1])
+  );
 }
 
+// The getBoundsForChapters function takes the number of chapters in a book
+// and produces an Option of a Bounded number. This should never return a 
+// None, it is only in an Option for the Do notation to keep it short. The
+// lower bounds will ALWAYS be a 1 and the upper whatever you pass in as max. 
+function getBounds(max: number){
+  return pipe(
+    // Create the bounded range
+    {
+      bottom: 1,
+      top: max,
+      compare: N.Ord.compare,
+      equals: N.Ord.equals,
+    },
+
+    // Wrap it in an Option
+    O.of<Bounded<number>>,
+  );
+}
+
+// The clamp start takes a min, a max and a bounded range and returns the the
+// lower bound clamped to the bounded range and wrapped in an Option.
+function clampStart(min: number, max: number, boundedRange: Bounded<number>) {
+  return pipe(
+    // Get the lower of the min and max (we can't guarantee the user will)
+    min < max ? min : max,
+    
+    // Clamp it to the bounded range
+    clamp(boundedRange),
+
+    // Wrap it in an Option
+    O.of,
+  );
+}
+
+// The clamp start takes a min, a max and a bounded range and returns the the
+// upper bound clamped to the bounded range and wrapped in an Option.
+function clampEnd(min: number, max: number, boundedRange: Bounded<number>) {
+  return pipe(
+    // Get the lower of the min and max (we can't guarantee the user will)
+    max > min ? max : min,
+
+    // Clamp it to the bounded range
+    clamp(boundedRange),
+
+    // Wrap it in an Option
+    O.of,
+  );
+}
+
+/**
+ * The chapterExissInBook function takes a book and a chapter number, and 
+ * returns true if the chapter exists in that book and false otherwise. 
+ * 
+ * @param book The book to check
+ * @param chapter The chapter to check for
+ * @returns A boolean value indiciating whether that chapter is present in the
+ * book
+ */
 function chapterExistsInBook(book: ValidBookName, chapter: number): boolean {
   return chapter >= 1 && chapter <= chapterCountFrom(book);
 }
 
+/**
+ * The verseCountFrom function takes a book and a chapter number and returns
+ * an Option with the number of verses in that chapter. If the chapter doesn't
+ * exist a None will be returned.
+ * 
+ * @param book The book to check for the chapter in
+ * @param chapter The chapter to check for the verseCount
+ * @returns The number of verses in the chapter wrapped in an Option, if the
+ * chapter doesn't exist a None will be returned.
+ */
 function verseCountFrom(
   book: ValidBookName,
   chapter: number
 ): O.Option<number> {
+  // Check if the chapter exists in the book
   return chapterExistsInBook(book, chapter)
+    // if it does return the number of verses wrapped in an Option
     ? O.some(bookMeta[book].verseCounts[chapter])
+    // If not return a None
     : O.none;
 }
 
+/**
+ * The getVerseRangeFromParts function takes a book name, a chapter, a min and a
+ * max number for the verse range requested. It returns a tuple of the min and
+ * max verse number for a book/chapter, in the corrected order if need be,
+ * clamped between 1 and the number of chapters in the book.
+ * 
+ * @param book The book to get the range from
+ * @param chapter The chapter to get the range from
+ * @param min The minimum requested verse number
+ * @param max The maximum requested verse number
+ * @returns A range of verse numbers for the book that are clamped between 1
+ * and the number of chapters in the book. Wrapped in an Option as the chapter
+ * might not exist in the book. Note: This is different from 
+ * getChapterRangeFromParts which doesn't need to be in an Option as it should
+ * never fail. 
+ */
 function getVerseRangeFromParts(
   book: ValidBookName,
   chapter: number,
   min: number,
   max: number
 ): O.Option<readonly [number, number]> {
-  const numVersesOpt = verseCountFrom(book, chapter);
+  return pipe(
+    O.Do,
 
-  if (O.isSome(numVersesOpt)) {
-    const boundedRange: Bounded<number> = {
-      bottom: 1,
-      top: numVersesOpt.value,
-      compare: N.Ord.compare,
-      equals: N.Ord.equals,
-    };
+    // Get the number of chapters in the book
+    O.apS("numVerses", verseCountFrom(book, chapter)),
+   
+    // Get a bounded range from 1 to the number of chapters in the book
+    // in the case the user asked for chapters outside of reality
+    O.bind("boundedRange", ({numVerses}) => 
+      getBounds(numVerses),
+    ),
 
-    const start = clamp(boundedRange)(min < max ? min : max);
-    const end = clamp(boundedRange)(max > min ? max : min);
+    // Get the clamped lower bound
+    O.bind("start", ({boundedRange}) => clampStart(min, max, boundedRange)),
 
-    return O.some([start, end] as const);
-  }
+    // Get the clamped upper bound
+    O.bind("end", ({boundedRange}) => clampEnd(min, max, boundedRange)),
 
-  return O.none;
+    // Map the results into a tuple containing the min and max
+    O.map(({start, end}) => <[min: number, max: number]>[start, end]),
+  );
 }
 
+/**
+ * The verseExistsInChapter takes a book, a chapter and a verse and returns true
+ * if it exists and false otherwise. 
+ * 
+ * @param book The book to search for the verse
+ * @param chapter The chapter to search for the verse
+ * @param verse The verse to search for
+ * @returns Whether or not the verse exists in that book/chapter combination
+ */
 function verseExistsInChapter(
   book: ValidBookName,
   chapter: number,
   verse: number
 ): boolean {
   return pipe(
+    // Get the verse count
     verseCountFrom(book, chapter),
+
+    // Return a "some" if the predicate is true and a None otherwise
     O.chain(O.fromPredicate((count) => verse >= 1 && verse <= count)),
+
+    // If the preceding predicate was true, change the mapping from a number
+    // to "true"
     O.map(() => true),
+
+    // Get it out if it is true, and return false otherwise
     O.getOrElse(() => false)
   );
 }
 
+/**
+ * The BibleMeta object contains the meta data for the books of the Bible. It
+ * includes a "match" expression that can be used to match the book name, and
+ * a verseCounts object that contains the number of verses in each chapter.
+ */
 const bookMeta: BibleMeta = {
   "1 chronicles": {
     match: `^(${ones})\\s*ch(r(o(n(i(c(l(e(s)?)?)?)?)?)?)?)?${nonNameChars}*$`,
@@ -1696,9 +1866,9 @@ const bookMeta: BibleMeta = {
 export {
   ValidBookName,
   getBookName,
+  chapterExistsInBook,
   chapterCountFrom,
   getChapterRangeFromParts,
-  chapterExistsInBook,
   verseCountFrom,
   getVerseRangeFromParts,
   verseExistsInChapter,
