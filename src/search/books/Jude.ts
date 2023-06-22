@@ -1,6 +1,6 @@
-import { Book } from "../types";
+import { BookRecords } from "../../lib/types";
 
-const Jude: Book = {
+const Jude: BookRecords = {
   jude: {
     1: {
       1: "Jude, the servant of Jesus Christ, and brother of James, to them that are sanctified by God the Father, and preserved in Jesus Christ, and called:",

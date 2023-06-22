@@ -1,6 +1,6 @@
-import { Book } from "../types";
+import { BookRecords } from "../../lib/types";
 
-const James: Book = {
+const James: BookRecords = {
   james: {
     1: {
       1: "James, a servant of God and of the Lord Jesus Christ, to the twelve tribes which are scattered abroad, greeting.",

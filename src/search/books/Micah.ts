@@ -1,6 +1,6 @@
-import { Book } from "../types";
+import { BookRecords } from "../../lib/types";
 
-const Micah: Book = {
+const Micah: BookRecords = {
   micah: {
     1: {
       1: "The word of the LORD that came to Micah the Morasthite in the days of Jotham, Ahaz, and Hezekiah, kings of Judah, which he saw concerning Samaria and Jerusalem.",

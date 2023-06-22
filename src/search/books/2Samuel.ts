@@ -1,6 +1,6 @@
-import { Book } from "../types";
+import { BookRecords } from "../../lib/types";
 
-const TwoSamuel: Book = {
+const TwoSamuel: BookRecords = {
   "2 samuel": {
     1: {
       1: "Now it came to pass after the death of Saul, when David was returned from the slaughter of the Amalekites, and David had abode two days in Ziklag;",

@@ -1,6 +1,6 @@
-import { Book } from "../types";
+import { BookRecords } from "../../lib/types";
 
-const Habakkuk: Book = {
+const Habakkuk: BookRecords = {
   habakkuk: {
     1: {
       1: "The burden which Habakkuk the prophet did see.",

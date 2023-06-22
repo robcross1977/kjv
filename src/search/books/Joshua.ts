@@ -1,6 +1,6 @@
-import { Book } from "../types";
+import { BookRecords } from "../../lib/types";
 
-const Joshua: Book = {
+const Joshua: BookRecords = {
   joshua: {
     1: {
       1: "Now after the death of Moses the servant of the LORD it came to pass, that the LORD spake unto Joshua the son of Nun, Moses\u2019 minister, saying,",

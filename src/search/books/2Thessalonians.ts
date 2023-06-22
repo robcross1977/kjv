@@ -1,6 +1,6 @@
-import { Book } from "../types";
+import { BookRecords } from "../../lib/types";
 
-const TwoThessalonians: Book = {
+const TwoThessalonians: BookRecords = {
   "2 thessalonians": {
     1: {
       1: "Paul, and Silvanus, and Timotheus, unto the church of the Thessalonians in God our Father and the Lord Jesus Christ:",

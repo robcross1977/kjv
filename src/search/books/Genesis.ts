@@ -1,6 +1,6 @@
-import { Book } from "../types";
+import { BookRecords } from "../../lib/types";
 
-const Genesis: Book = {
+const Genesis: BookRecords = {
   genesis: {
     1: {
       1: "In the beginning God created the heaven and the earth.",

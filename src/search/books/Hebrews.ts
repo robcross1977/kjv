@@ -1,6 +1,6 @@
-import { Book } from "../types";
+import { BookRecords } from "../../lib/types";
 
-const Hebrews: Book = {
+const Hebrews: BookRecords = {
   hebrews: {
     1: {
       1: "God, who at sundry times and in divers manners spake in time past unto the fathers by the prophets,",

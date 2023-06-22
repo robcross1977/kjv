@@ -1,6 +1,6 @@
-import { Book } from "../types";
+import { BookRecords } from "../../lib/types";
 
-const Nahum: Book = {
+const Nahum: BookRecords = {
   nahum: {
     1: {
       1: "The burden of Nineveh. The book of the vision of Nahum the Elkoshite.",

@@ -1,6 +1,6 @@
-import { Book } from "../types";
+import { BookRecords } from "../../lib/types";
 
-const Titus: Book = {
+const Titus: BookRecords = {
   titus: {
     1: {
       1: "Paul, a servant of God, and an apostle of Jesus Christ, according to the faith of God\u2019s elect, and the acknowledging of the truth which is after godliness;",

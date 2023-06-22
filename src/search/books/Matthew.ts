@@ -1,6 +1,6 @@
-import { Book } from "../types";
+import { BookRecords } from "../../lib/types";
 
-const Matthew: Book = {
+const Matthew: BookRecords = {
   matthew: {
     1: {
       1: "The book of the generation of Jesus Christ, the son of David, the son of Abraham.",

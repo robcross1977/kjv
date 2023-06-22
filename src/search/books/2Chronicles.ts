@@ -1,6 +1,6 @@
-import { Book } from "../types";
+import { BookRecords } from "../../lib/types";
 
-const TwoChronicles: Book = {
+const TwoChronicles: BookRecords = {
   "2 chronicles": {
     1: {
       1: "And Solomon the son of David was strengthened in his kingdom, and the LORD his God was with him, and magnified him exceedingly.",

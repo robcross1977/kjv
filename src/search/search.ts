@@ -3,7 +3,7 @@ import { IError, errorFrom } from "./error";
 import { ParamsError, TypedParts, getParams } from "./params";
 import { concatChapters, makeChapterArray, Search } from "./search-builder";
 import { getSubsChapterArrays } from "./subs";
-import { Book } from "./types";
+import { BookRecords } from "../lib/types";
 import {
   OneChronicles,
   OneCorinthians,
@@ -236,14 +236,14 @@ function getResult(search: Search) {
       )
     ),
     O.map(({ bookName, chapters }) => {
-      return <Book>{
+      return <BookRecords>{
         [bookName]: R.fromEntries(ROA.toArray(chapters)),
       };
     })
   );
 }
 
-function getBookJson(book: ValidBookName): Book {
+function getBookJson(book: ValidBookName): BookRecords {
   switch (book) {
     case "1 chronicles":
       return OneChronicles;

@@ -1,6 +1,6 @@
-import { Book } from "../types";
+import { BookRecords } from "../../lib/types";
 
-const Exodus: Book = {
+const Exodus: BookRecords = {
   exodus: {
     1: {
       1: "Now these are the names of the children of Israel, which came into Egypt; every man and his household came with Jacob.",

@@ -1,6 +1,6 @@
-import { Book } from "../types";
+import { BookRecords } from "../../lib/types";
 
-const TwoCorinthians: Book = {
+const TwoCorinthians: BookRecords = {
   "2 corinthians": {
     1: {
       1: "Paul, an apostle of Jesus Christ by the will of God, and Timothy our brother, unto the church of God which is at Corinth, with all the saints which are in all Achaia:",

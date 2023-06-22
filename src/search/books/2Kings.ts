@@ -1,6 +1,6 @@
-import { Book } from "../types";
+import { BookRecords } from "../../lib/types";
 
-const TwoKings: Book = {
+const TwoKings: BookRecords = {
   "2 kings": {
     1: {
       1: "Then Moab rebelled against Israel after the death of Ahab.",

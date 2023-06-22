@@ -1,6 +1,6 @@
-import { Book } from "../types";
+import { BookRecords } from "../../lib/types";
 
-const ThreeJohn: Book = {
+const ThreeJohn: BookRecords = {
   "3 john": {
     1: {
       1: "The elder unto the wellbeloved Gaius, whom I love in the truth.",

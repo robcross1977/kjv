@@ -1,6 +1,6 @@
-import { Book } from "../types";
+import { BookRecords } from "../../lib/types";
 
-const Colossians: Book = {
+const Colossians: BookRecords = {
   colossians: {
     1: {
       1: "Paul, an apostle of Jesus Christ by the will of God, and Timotheus our brother,",

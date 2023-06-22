@@ -1,6 +1,6 @@
-import { Book } from "../types";
+import { BookRecords } from "../../lib/types";
 
-const Jonah: Book = {
+const Jonah: BookRecords = {
   jonah: {
     1: {
       1: "Now the word of the LORD came unto Jonah the son of Amittai, saying,",

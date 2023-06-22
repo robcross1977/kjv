@@ -16,7 +16,7 @@ import {
   verseCountFrom,
 } from "./bible-meta";
 import { IError, errorFrom } from "./error";
-import { Chapters, Search } from "./types";
+import { Chapters, Search } from "../lib/types";
 import { Magma } from "fp-ts/Magma";
 
 type SearchBuilderMsg =

@@ -1,6 +1,6 @@
-import { Book } from "../types";
+import { BookRecords } from "../../lib/types";
 
-const Leviticus: Book = {
+const Leviticus: BookRecords = {
   leviticus: {
     1: {
       1: "And the LORD called unto Moses, and spake unto him out of the tabernacle of the congregation, saying,",

@@ -1,6 +1,6 @@
-import { Book } from "../types";
+import { BookRecords } from "../../lib/types";
 
-const Ecclesiastes: Book = {
+const Ecclesiastes: BookRecords = {
   ecclesiastes: {
     1: {
       1: "The words of the Preacher, the son of David, king in Jerusalem.",

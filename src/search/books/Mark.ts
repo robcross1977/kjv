@@ -1,6 +1,6 @@
-import { Book } from "../types";
+import { BookRecords } from "../../lib/types";
 
-const Mark: Book = {
+const Mark: BookRecords = {
   mark: {
     1: {
       1: "The beginning of the gospel of Jesus Christ, the Son of God;",

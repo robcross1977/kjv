@@ -1,6 +1,6 @@
-import { Book } from "../types";
+import { BookRecords } from "../../lib/types";
 
-const TwoTimothy: Book = {
+const TwoTimothy: BookRecords = {
   "2 timothy": {
     1: {
       1: "Paul, an apostle of Jesus Christ by the will of God, according to the promise of life which is in Christ Jesus,",

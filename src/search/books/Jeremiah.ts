@@ -1,6 +1,6 @@
-import { Book } from "../types";
+import { BookRecords } from "../../lib/types";
 
-const Jeremiah: Book = {
+const Jeremiah: BookRecords = {
   jeremiah: {
     1: {
       1: "The words of Jeremiah the son of Hilkiah, of the priests that were in Anathoth in the land of Benjamin:",

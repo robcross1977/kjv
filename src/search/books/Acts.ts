@@ -1,6 +1,6 @@
-import { Book } from "../types";
+import { BookRecords } from "../../lib/types";
 
-const Acts: Book = {
+const Acts: BookRecords = {
   acts: {
     1: {
       1: "The former treatise have I made, O Theophilus, of all that Jesus began both to do and teach,",

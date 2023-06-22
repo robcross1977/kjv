@@ -1,6 +1,6 @@
-import { Book } from "../types";
+import { BookRecords } from "../../lib/types";
 
-const Malachi: Book = {
+const Malachi: BookRecords = {
   malachi: {
     1: {
       1: "The burden of the word of the LORD to Israel by Malachi.",
