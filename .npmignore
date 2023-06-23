@@ -1,0 +1,7 @@
+coverage
+.github
+.vscode
+prettier.config
+src
+tsconfig.json
+node_modules

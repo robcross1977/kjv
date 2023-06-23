@@ -5,11 +5,13 @@
 
     /* Modules */
     "module": "commonjs",
-    "rootDir": "./src",
+    "rootDir": "src",
 
     /* Emit */
-    "outDir": "./dist",
+    "outDir": "dist",
     "removeComments": true,
+    "declaration": true,
+    "types": ["node"],
 
     /* Interop Constraints */
     "esModuleInterop": true,
