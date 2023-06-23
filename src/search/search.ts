@@ -70,7 +70,8 @@ function search(query: string) {
         getResult,
         E.fromOption<SearchError>(() => errorFrom<SearchMsg>("no result found"))
       )
-    )
+    ),
+    E.getOrElse(() => {return {}})
   );
 }
 
