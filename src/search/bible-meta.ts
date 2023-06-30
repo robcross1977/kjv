@@ -1864,6 +1864,7 @@ const bookMeta: BibleMeta = {
 };
 
 export {
+  BookNames,
   ValidBookName,
   getBookName,
   chapterExistsInBook,
