@@ -168,6 +168,7 @@ function addSpace(s: string) {
  * The SearchType type is a union of all the possible search types.
  */
 type SearchType =
+  | "multi"
   | "none"
   | "book"
   | "chapter"

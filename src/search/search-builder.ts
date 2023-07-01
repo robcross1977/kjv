@@ -76,6 +76,7 @@ function getChapterStart({
 }: TypedParts): E.Either<SearchBuilderError | ParamsError, number> {
   switch (type) {
     case "none":
+    case "multi":
       return E.left(errorFrom("no search type provided"));
     // If we have a book search no chapterStart is provided so we return 1 since
     // 1 is the default chapterStart for a book search.
@@ -110,6 +111,7 @@ function getChapterEnd(
 ): E.Either<SearchBuilderError | ParamsError, number> {
   switch (type) {
     case "none":
+    case "multi":
       return E.left(errorFrom("no search type provided"));
     // For a book search the chapterEnd is the number of chapters in the book
     // as the chapterEnd is not provided. 
@@ -139,6 +141,7 @@ function getVerseStart({
 }: TypedParts): E.Either<SearchBuilderError | ParamsError, number> {
   switch (type) {
     case "none":
+    case "multi":
       return E.left(errorFrom("no search type provided"));
     case "book":
     case "chapter":
@@ -160,6 +163,7 @@ function getVerseEnd(
 ): E.Either<SearchBuilderError | ParamsError, number> {
   switch (type) {
     case "none":
+    case "multi":
       return E.left(errorFrom("no search type provided"));
     case "book":
     case "chapter-range":
