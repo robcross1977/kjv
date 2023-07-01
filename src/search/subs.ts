@@ -343,4 +343,4 @@ function getIsMatch(type: SearchType, sub: string, matchData: MatchData) {
   );
 }
 
-export { getSubsChapterArrays };
+export { SubsError, getSubsChapterArrays };

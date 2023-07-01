@@ -20,6 +20,7 @@ import * as R from "fp-ts/Record";
 import * as ROA from "fp-ts/ReadonlyArray";
 
 type SearchBuilderMsg =
+| "no search type provided"
   | "verse not found"
   | "can't concat searches with different names";
 type SearchBuilderError = IError<SearchBuilderMsg>;
@@ -74,6 +75,8 @@ function getChapterStart({
   chapterStart,
 }: TypedParts): E.Either<SearchBuilderError | ParamsError, number> {
   switch (type) {
+    case "none":
+      return E.left(errorFrom("no search type provided"));
     // If we have a book search no chapterStart is provided so we return 1 since
     // 1 is the default chapterStart for a book search.
     case "book":
@@ -106,6 +109,8 @@ function getChapterEnd(
   { type, chapterStart, chapterEnd }: TypedParts
 ): E.Either<SearchBuilderError | ParamsError, number> {
   switch (type) {
+    case "none":
+      return E.left(errorFrom("no search type provided"));
     // For a book search the chapterEnd is the number of chapters in the book
     // as the chapterEnd is not provided. 
     case "book":
@@ -133,6 +138,8 @@ function getVerseStart({
   verseStart,
 }: TypedParts): E.Either<SearchBuilderError | ParamsError, number> {
   switch (type) {
+    case "none":
+      return E.left(errorFrom("no search type provided"));
     case "book":
     case "chapter":
     case "chapter-range":
@@ -152,6 +159,8 @@ function getVerseEnd(
   { type, chapterStart, chapterEnd, verseStart, verseEnd }: TypedParts
 ): E.Either<SearchBuilderError | ParamsError, number> {
   switch (type) {
+    case "none":
+      return E.left(errorFrom("no search type provided"));
     case "book":
     case "chapter-range":
       return pipe(
@@ -394,4 +403,4 @@ function getVerseRangeForContainedChapter(
   );
 }
 
-export { Search, makeChapterArray, concatChapters };
+export { SearchBuilderError, Search, makeChapterArray, concatChapters };

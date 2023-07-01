@@ -6,8 +6,10 @@ describe("The Search Module", () => {
     it("should return a Book object", () => {
       const input = "1 John";
       const expected = {
+        type: "book",
+        records: {
         "1 john": kjv["1 john"],
-      };
+      }};
 
       const result = search(input);
 
@@ -16,9 +18,9 @@ describe("The Search Module", () => {
 
     it("should return a chapter object", () => {
       const input = "1 John 1";
-      const expected = {
+      const expected = {type: "chapter", records:{
         "1 john": { 1: kjv["1 john"][1] },
-      };
+      }};
 
       const result = search(input);
 
@@ -28,12 +30,14 @@ describe("The Search Module", () => {
     it("should return a chapter range object", () => {
       const input = "1 John 2-4";
       const expected = {
+        type: "chapter-range",
+        records: {
         "1 john": {
           2: kjv["1 john"][2],
           3: kjv["1 john"][3],
           4: kjv["1 john"][4],
         },
-      };
+      }};
 
       const result = search(input);
 
@@ -43,11 +47,13 @@ describe("The Search Module", () => {
     it("should return a verse object", () => {
       const input = "1 John 2:4";
       const expected = {
+        type: "verse",
+        records: {
         "1 john": {
           2: {
             4: kjv["1 john"][2][4],
           },
-        },
+        }},
       };
 
       const result = search(input);
@@ -58,6 +64,8 @@ describe("The Search Module", () => {
     it("should return a verse range object", () => {
       const input = "1 John 2:4-7";
       const expected = {
+        type: "verse-range",
+        records: {
         "1 john": {
           2: {
             4: kjv["1 john"][2][4],
@@ -66,7 +74,7 @@ describe("The Search Module", () => {
             7: kjv["1 john"][2][7],
           },
         },
-      };
+      }};
 
       const result = search(input);
 
@@ -76,6 +84,8 @@ describe("The Search Module", () => {
     it("should return a multi-chapter-verse object", () => {
       const input = "1 John 2-4:4";
       const expected = {
+        type: "multi-chapter-verse",
+        records: {
         "1 john": {
           2: kjv["1 john"][2],
           3: kjv["1 john"][3],
@@ -86,7 +96,7 @@ describe("The Search Module", () => {
             4: kjv["1 john"][4][4],
           },
         },
-      };
+      }};
 
       const result = search(input);
 
@@ -96,6 +106,8 @@ describe("The Search Module", () => {
     it("should return a full-range object", () => {
       const input = "1 John 2:25-4:5";
       const expected = {
+        type: "full-range",
+        records: {
         "1 john": {
           2: {
             25: kjv["1 john"][2][25],
@@ -113,7 +125,7 @@ describe("The Search Module", () => {
             5: kjv["1 john"][4][5],
           },
         },
-      };
+      }};
 
       const result = search(input);
 
@@ -123,7 +135,9 @@ describe("The Search Module", () => {
     it("should return searches with subs", () => {
       const input = "1 John 1, 2-3, 4:1, 4:3-6, 4:19-5:2";
       const expected = {
-        "1 john": {
+        type: "multi",
+        records: {
+          "1 john": {
           1: kjv["1 john"][1],
           2: kjv["1 john"][2],
           3: kjv["1 john"][3],
@@ -142,7 +156,7 @@ describe("The Search Module", () => {
             2: kjv["1 john"][5][2],
           },
         },
-      };
+      }};
 
       const result = search(input);
 

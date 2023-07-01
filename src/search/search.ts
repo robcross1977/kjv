@@ -1,9 +1,9 @@
 import { getBookName, ValidBookName } from "./bible-meta";
 import { IError, errorFrom } from "./error";
 import { ParamsError, TypedParts, getParams } from "./params";
-import { concatChapters, makeChapterArray, Search } from "./search-builder";
-import { getSubsChapterArrays } from "./subs";
-import { BookRecords, ChapterRecords } from "../lib/types";
+import { concatChapters, makeChapterArray, Search, SearchBuilderError } from "./search-builder";
+import { getSubsChapterArrays, SubsError } from "./subs";
+import { ChapterRecords, WrappedRecords } from "../lib/types";
 import { kjv } from "../kjv";
 import { pipe } from "fp-ts/function";
 import { Eq } from "fp-ts/number";
@@ -44,6 +44,7 @@ function search(query: string) {
     // values after the main part.
     // Example: John 3:16,18-20,22-24
     E.bind("subs", ({ splits }) => getSubs(splits)),
+    E.bind("isMulti", ({ subs }) => E.right(ROA.size(subs) > 0)),
 
     E.bindW("parts", ({ main }) => getParams(main)),
     E.bind("title", ({ parts }) => getTitle(parts)),
@@ -58,9 +59,10 @@ function search(query: string) {
         concatChapters([mainChapterVerses, ...ROA.toArray(subChapterVerses)])
       )
     ),
-    E.bind("search", ({ title, combinedChapterVerses }) =>
+    E.bind("search", ({ title, combinedChapterVerses, parts, isMulti }) =>
       E.right(<Search>{
         name: title,
+        type: isMulti ? "multi" : parts.type,
         chapters: combinedChapterVerses,
       })
     ),
@@ -71,7 +73,10 @@ function search(query: string) {
         E.fromOption<SearchError>(() => errorFrom<SearchMsg>("no result found"))
       )
     ),
-    E.getOrElse(() => {return {}})
+    E.getOrElse<SearchError | ParamsError | SearchBuilderError | SubsError, WrappedRecords>(() => {return {
+      type: "none",
+      records: {}
+    }})
   );
 }
 
@@ -123,6 +128,7 @@ function getResult(search: Search) {
   return pipe(
     O.Do,
     O.apS("bookName", O.of(search.name)),
+    O.apS("type", O.of(search.type)),
     O.apS("bookJson", O.of(getChapterRecordsByBook(search.name))),
     O.bind("chapters", ({ bookJson }) =>
       pipe(
@@ -169,9 +175,12 @@ function getResult(search: Search) {
         O.sequenceArray
       )
     ),
-    O.map(({ bookName, chapters }) => {
-      return <BookRecords>{
-        [bookName]: R.fromEntries(ROA.toArray(chapters)),
+    O.map(({ bookName, chapters, type }) => {
+      return {
+        type, 
+        records: {
+          [bookName]: R.fromEntries(ROA.toArray(chapters)),
+        }
       };
     })
   );
