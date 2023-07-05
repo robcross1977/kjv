@@ -458,14 +458,14 @@ function getPreviousBook(book: ValidBookName): O.Option<ValidBookName> {
 function getNextChapter(
   book: ValidBookName,
   chapter: number
-): O.Option<readonly [ValidBookName, number, number]> {
+): O.Option<readonly [ValidBookName, number]> {
   // increment chapter number
   const newChapterNumber = chapter + 1;
 
   // Check if the new chapter number exists in the book
   // If so return it and the book name it came from
   if (chapterExistsInBook(book, newChapterNumber)) {
-    return O.some([book, newChapterNumber, 1] as const);
+    return O.some([book, newChapterNumber] as const);
   }
 
   // If not, get the next book name if there is one and the first chapter of
@@ -473,7 +473,7 @@ function getNextChapter(
   return pipe(
     O.Do,
     O.apS("nextBook", getNextBook(book)),
-    O.chain(({ nextBook }) => O.some([nextBook, 1, 1] as const))
+    O.chain(({ nextBook }) => O.some([nextBook, 1] as const))
   );
 }
 
@@ -484,23 +484,14 @@ function getNextChapter(
 function getPreviousChapter(
   book: ValidBookName,
   chapter: number
-): O.Option<readonly [ValidBookName, number, number]> {
+): O.Option<readonly [ValidBookName, number]> {
   // decrement chapter number
   const newChapterNumber = chapter - 1;
 
   // Check if the new chapter number exists in the book
   // If so return it and the book name it came from
   if (chapterExistsInBook(book, newChapterNumber)) {
-    const verseCountOpt = verseCountFrom(
-      book,
-      newChapterNumber
-    );
-
-    if(O.isSome(verseCountOpt)) {
-      return O.some([book, newChapterNumber, verseCountOpt.value] as const);
-    }
-
-    return O.none;
+    return O.some([book, newChapterNumber] as const);
   }
 
   // If not, get the next book name if there is one with the last chapter of
@@ -509,25 +500,16 @@ function getPreviousChapter(
     O.Do,
     O.apS("prevBook", getPreviousBook(book)),
     O.chain(({ prevBook }) => {
-      const verseCountOpt = verseCountFrom(
-        prevBook,
-        chapterCountFrom(prevBook)
-      );
-
-      if (O.isSome(verseCountOpt)) {
-        return O.some([
-          prevBook,
-          chapterCountFrom(prevBook),
-          verseCountOpt.value,
-        ] as const);
-      }
-
-      return O.none;
+      return O.some([prevBook, chapterCountFrom(prevBook)] as const);
     })
   );
 }
 
-function getNextVerse(book: ValidBookName, chapter: number, verse: number) {
+function getNextVerse(
+  book: ValidBookName,
+  chapter: number,
+  verse: number
+): O.Option<readonly [ValidBookName, number, number]> {
   // increment verse number
   const newVerseNumber = verse + 1;
 
@@ -542,11 +524,17 @@ function getNextVerse(book: ValidBookName, chapter: number, verse: number) {
   return pipe(
     O.Do,
     O.apS("nextChapter", getNextChapter(book, chapter)),
-    O.chain(({ nextChapter }) => O.some([nextChapter[0], nextChapter[1], nextChapter[2]] as const))
+    O.chain(({ nextChapter }) =>
+      O.some([nextChapter[0], nextChapter[1], 1] as const)
+    )
   );
 }
 
-function getPreviousVerse(book: ValidBookName, chapter: number, verse: number) {
+function getPreviousVerse(
+  book: ValidBookName,
+  chapter: number,
+  verse: number
+): O.Option<readonly [ValidBookName, number, number]> {
   // increment verse number
   const newVerseNumber = verse - 1;
 
@@ -561,13 +549,19 @@ function getPreviousVerse(book: ValidBookName, chapter: number, verse: number) {
   return pipe(
     O.Do,
     O.apS("previousChapter", getPreviousChapter(book, chapter)),
-    O.chain(({ previousChapter }) =>
-      O.some([
-        previousChapter[0],
-        previousChapter[1],
-        previousChapter[2],
-      ] as const)
-    )
+    O.chain(({ previousChapter }) => {
+      const lastVerse = verseCountFrom(previousChapter[0], previousChapter[1]);
+
+      if (O.isSome(lastVerse)) {
+        return O.some([
+          previousChapter[0],
+          previousChapter[1],
+          lastVerse.value,
+        ] as const);
+      }
+
+      return O.none;
+    })
   );
 }
 
@@ -643,40 +637,56 @@ function getNext(
   book: string | null | undefined,
   chapter: string | null | undefined,
   verse: string | null | undefined
-): O.Option<readonly [ValidBookName, number, number]> {
+) {
   const { bookOpt, chapterOpt, verseOpt } = getParamOpts(book, chapter, verse);
 
   if (O.isNone(bookOpt) || O.isNone(chapterOpt)) {
     return O.none;
-  } else if (O.isNone(verseOpt)) {
-    return getNextChapter(bookOpt.value, Number(chapterOpt.value));
-  } else {
-    return getNextVerse(
-      bookOpt.value,
-      Number(chapterOpt.value),
-      Number(verseOpt.value)
-    );
   }
+
+  const queryParams = O.isNone(verseOpt)
+    ? getNextChapter(bookOpt.value, Number(chapterOpt.value))
+    : getNextVerse(
+        bookOpt.value,
+        Number(chapterOpt.value),
+        Number(verseOpt.value)
+      );
+  
+  if(O.isNone(queryParams)) {
+    return O.none;
+  }
+
+  const [b, c, v] = [queryParams.value.at(0), queryParams.value.at(1), queryParams.value.at(2) ?? ""];
+
+  return O.some(v ? `book=${b}&chapter=${c}&verse=${v}` : `book=${b}&chapter=${c}`);
 }
 
 function getPrevious(
   book: string | null | undefined,
   chapter: string | null | undefined,
   verse: string | null | undefined
-): O.Option<readonly [ValidBookName, number, number]> {
+): O.Option<string> {
   const { bookOpt, chapterOpt, verseOpt } = getParamOpts(book, chapter, verse);
 
   if (O.isNone(bookOpt) || O.isNone(chapterOpt)) {
     return O.none;
-  } else if (O.isNone(verseOpt)) {
-    return getPreviousChapter(bookOpt.value, Number(chapterOpt.value));
-  } else {
-    return getPreviousVerse(
-      bookOpt.value,
-      Number(chapterOpt.value),
-      Number(verseOpt.value)
-    );
+  } 
+  
+  const queryParams = O.isNone(verseOpt)
+    ? getPreviousChapter(bookOpt.value, Number(chapterOpt.value))
+    : getPreviousVerse(
+        bookOpt.value,
+        Number(chapterOpt.value),
+        Number(verseOpt.value)
+      );
+ 
+  if(O.isNone(queryParams)) {
+    return O.none;
   }
+
+  const [b, c, v] = [queryParams.value.at(0), queryParams.value.at(1), queryParams.value.at(2) ?? ""];
+
+  return O.some(v ? `book=${b}&chapter=${c}&verse=${v}` : `book=${b}&chapter=${c}`);
 }
 
 /**

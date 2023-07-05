@@ -537,13 +537,13 @@ describe("The book module", () => {
     });
     
     it("should get next chapter in the same book if book and chapter but not verse is passed", () => {
-      const expected = O.some(["1 chronicles", 2, 1]);
+      const expected = O.some("book=1 chronicles&chapter=2");
       const result = getNext("1 chronicles", "1", null);
       expect(result).toEqual(expected);
     });
     
     it("should get the first chapter of the next book if book and chapter but not verse is passed and it is the final chapter of the current book", () => {
-      const expected = O.some(["2 chronicles", 1, 1]);
+      const expected = O.some("book=2 chronicles&chapter=1");
       const result = getNext("1 chronicles", "29", null);
       expect(result).toEqual(expected);
     });
@@ -555,19 +555,19 @@ describe("The book module", () => {
     });
 
     it("should get next verse in the same chapter of the book, chapter and verse are passed and there is a next verse", () => {
-      const expected = O.some(["1 chronicles", 1, 2]);
+      const expected = O.some("book=1 chronicles&chapter=1&verse=2");
       const result = getNext("1 chronicles", "1", "1");
       expect(result).toEqual(expected);
     });
     
     it("should get first verse of the next chapter if the book, chapter and verse are passed and there is no next verse in the current book", () => {
-      const expected = O.some(["1 chronicles", 2, 1]);
+      const expected = O.some("book=1 chronicles&chapter=2&verse=1");
       const result = getNext("1 chronicles", "1", "54");
       expect(result).toEqual(expected);
     });
 
     it("should get first verse of the next book if the book, chapter and verse are passed and there is no next verse in the current book and it is the last chapter of the current book", () => {
-      const expected = O.some(["2 chronicles", 1, 1]);
+      const expected = O.some("book=2 chronicles&chapter=1&verse=1");
       const result = getNext("1 chronicles", "29", "30");
       expect(result).toEqual(expected);
     });
@@ -593,13 +593,13 @@ describe("The book module", () => {
     });
 
     it("should get previous chapter in the same book if book and chapter but not verse is passed", () => {
-      const expected = O.some(["1 chronicles", 1, 54]);
+      const expected = O.some("book=1 chronicles&chapter=1");
       const result = getPrevious("1 chronicles", "2", null);
       expect(result).toEqual(expected);
     });
     
     it("should get the last chapter of the previous book if book and chapter but not verse is passed and it is the first chapter of the current book", () => {
-      const expected = O.some(["2 kings", 25, 30]);
+      const expected = O.some("book=2 kings&chapter=25");
       const result = getPrevious("1 chronicles", "1", null);
       expect(result).toEqual(expected);
     });
@@ -611,19 +611,19 @@ describe("The book module", () => {
     });
 
     it("should get previous verse in the same chapter if the book, chapter and verse are passed and there is a previous verse", () => {
-      const expected = O.some(["1 chronicles", 1, 1]);
+      const expected = O.some("book=1 chronicles&chapter=1&verse=1");
       const result = getPrevious("1 chronicles", "1", "2");
       expect(result).toEqual(expected);
     });
 
     it("should get last verse of the previous chapter if the book, chapter and verse are passed and there is no next verse in the current book", () => {
-      const expected = O.some(["1 chronicles", 1, 54]);
+      const expected = O.some("book=1 chronicles&chapter=1&verse=54");
       const result = getPrevious("1 chronicles", "2", "1");
       expect(result).toEqual(expected);
     });
     
     it("should get last verse and last chapter of the previous book if the book, chapter and verse are passed and there is no previous verse in the current book and it is the first chapter of the current book", () => {
-      const expected = O.some(["2 kings", 25, 30]);
+      const expected = O.some("book=2 kings&chapter=25&verse=30");
       const result = getPrevious("1 chronicles", "1", "1");
       expect(result).toEqual(expected);
     });

@@ -1,6 +1,6 @@
 {
   "name": "kingjames",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "description": "A King James Bible search library, currently no database requried",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
