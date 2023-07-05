@@ -4,6 +4,7 @@ import { pipe } from "fp-ts/function";
 import { findFirst } from "fp-ts/ReadonlyArray";
 import * as N from "fp-ts/number";
 import * as O from "fp-ts/Option";
+import * as ROA from "fp-ts/ReadonlyArray";
 
 const bookNames = [
   "1 chronicles",
@@ -75,7 +76,7 @@ const bookNames = [
 ] as const;
 type BookNames = typeof bookNames;
 
-const orderedBookNames: readonly ValidBookName[]= [
+const orderedBookNames: readonly ValidBookName[] = [
   "genesis",
   "exodus",
   "leviticus",
@@ -144,7 +145,6 @@ const orderedBookNames: readonly ValidBookName[]= [
   "revelation",
 ] as const;
 
-
 /**
  * ValidBookName
  * @description The ValidBookName type is a union of all the valid book names
@@ -155,10 +155,10 @@ type ValidBookName = BookNames[number];
  * The getBookName function takes a string, that may or may not be a book name
  * in the form of a "ValidBookName", uses some regex and gets the first match
  * from the bookNames array, which you can use in other parts of your program.
- * 
+ *
  * This is to make it easy to take in a free form search, but then get a
- * concrete type for the book name. 
- * 
+ * concrete type for the book name.
+ *
  * @param search The free-form search string
  * @returns An Option containing a ValidBookName if one is found, or none
  * otherwise
@@ -175,19 +175,19 @@ function getBookName(search: string) {
 
 // A match candidate is a tuple of a book name and a search string. The book
 // name is a ValidBookName to match against, and the search string is the
-// string input by the user. 
+// string input by the user.
 type MatchCandidate = [book: ValidBookName, search: string];
 
 // The matchKey function takes a matchCandidate, gets a regex for the book
 // portion of the match candidate, then tests the search against it to see if
-// it is a match. 
+// it is a match.
 function matchKey([book, search]: MatchCandidate): boolean {
   return new RegExp(bookMeta[book].match, "i").test(search);
 }
 
 // The BibleMeta type is data about the Bible. It is a Record of ValidBookNames
 // to an object containing a regex to match against, and a Record of verse
-// counts that are indexed by the chapter number for that book. 
+// counts that are indexed by the chapter number for that book.
 type BibleMeta = Record<
   ValidBookName,
   {
@@ -197,7 +197,7 @@ type BibleMeta = Record<
 >;
 
 // The chapterCountFrom function takes a ValidBookName and returns the number
-// of chapters in that book. 
+// of chapters in that book.
 function chapterCountFrom(book: ValidBookName): number {
   return Object.keys(bookMeta[book].verseCounts).length;
 }
@@ -207,12 +207,12 @@ function chapterCountFrom(book: ValidBookName): number {
  * number for the chapter range requested. It returns a tuple of the min and
  * max chapter number, in the corrected order if need be, clamped between 1
  * and the number of chapters in the book.
- * 
+ *
  * @param book The book to get the range from
  * @param min The minimum requested chapter number
  * @param max The maximum requested chapter number
  * @returns A range of chapter numbers for the book that are clamped between 1
- * and the number of chapters in the book. 
+ * and the number of chapters in the book.
  */
 function getChapterRangeFromParts(
   book: ValidBookName,
@@ -224,34 +224,32 @@ function getChapterRangeFromParts(
 
     // Get the number of chapters in the book
     O.apS("numChapters", pipe(chapterCountFrom(book), O.of)),
-   
+
     // Get a bounded range from 1 to the number of chapters in the book
     // in the case the user asked for chapters outside of reality
-    O.bind("boundedRange", ({numChapters}) => 
-      getBounds(numChapters),
-    ),
+    O.bind("boundedRange", ({ numChapters }) => getBounds(numChapters)),
 
     // Get the clamped lower bound
-    O.bind("start", ({boundedRange}) => clampStart(min, max, boundedRange)),
+    O.bind("start", ({ boundedRange }) => clampStart(min, max, boundedRange)),
 
     // Get the clamped upper bound
-    O.bind("end", ({boundedRange}) => clampEnd(min, max, boundedRange)),
+    O.bind("end", ({ boundedRange }) => clampEnd(min, max, boundedRange)),
 
     // Map the results into a tuple containing the min and max
-    O.map(({start, end}) => <[min: number, max: number]>[start, end]),
+    O.map(({ start, end }) => <[min: number, max: number]>[start, end]),
 
     // Get the value from the option. Note: this should never fail because
     // there is nothing in it to fail, but I couldn't figure out how to get
-    // absurd to work here, which I'd have preferred. 
+    // absurd to work here, which I'd have preferred.
     O.getOrElse<[min: number, max: number]>(() => [1, 1])
   );
 }
 
 // The getBoundsForChapters function takes the number of chapters in a book
-// and produces an Option of a Bounded number. This should never return a 
+// and produces an Option of a Bounded number. This should never return a
 // None, it is only in an Option for the Do notation to keep it short. The
-// lower bounds will ALWAYS be a 1 and the upper whatever you pass in as max. 
-function getBounds(max: number){
+// lower bounds will ALWAYS be a 1 and the upper whatever you pass in as max.
+function getBounds(max: number) {
   return pipe(
     // Create the bounded range
     {
@@ -262,7 +260,7 @@ function getBounds(max: number){
     },
 
     // Wrap it in an Option
-    O.of<Bounded<number>>,
+    O.of<Bounded<number>>
   );
 }
 
@@ -272,12 +270,12 @@ function clampStart(min: number, max: number, boundedRange: Bounded<number>) {
   return pipe(
     // Get the lower of the min and max (we can't guarantee the user will)
     min < max ? min : max,
-    
+
     // Clamp it to the bounded range
     clamp(boundedRange),
 
     // Wrap it in an Option
-    O.of,
+    O.of
   );
 }
 
@@ -292,14 +290,14 @@ function clampEnd(min: number, max: number, boundedRange: Bounded<number>) {
     clamp(boundedRange),
 
     // Wrap it in an Option
-    O.of,
+    O.of
   );
 }
 
 /**
- * The chapterExissInBook function takes a book and a chapter number, and 
- * returns true if the chapter exists in that book and false otherwise. 
- * 
+ * The chapterExissInBook function takes a book and a chapter number, and
+ * returns true if the chapter exists in that book and false otherwise.
+ *
  * @param book The book to check
  * @param chapter The chapter to check for
  * @returns A boolean value indiciating whether that chapter is present in the
@@ -313,7 +311,7 @@ function chapterExistsInBook(book: ValidBookName, chapter: number): boolean {
  * The verseCountFrom function takes a book and a chapter number and returns
  * an Option with the number of verses in that chapter. If the chapter doesn't
  * exist a None will be returned.
- * 
+ *
  * @param book The book to check for the chapter in
  * @param chapter The chapter to check for the verseCount
  * @returns The number of verses in the chapter wrapped in an Option, if the
@@ -325,10 +323,10 @@ function verseCountFrom(
 ): O.Option<number> {
   // Check if the chapter exists in the book
   return chapterExistsInBook(book, chapter)
-    // if it does return the number of verses wrapped in an Option
-    ? O.some(bookMeta[book].verseCounts[chapter])
-    // If not return a None
-    : O.none;
+    ? // if it does return the number of verses wrapped in an Option
+      O.some(bookMeta[book].verseCounts[chapter])
+    : // If not return a None
+      O.none;
 }
 
 /**
@@ -336,16 +334,16 @@ function verseCountFrom(
  * max number for the verse range requested. It returns a tuple of the min and
  * max verse number for a book/chapter, in the corrected order if need be,
  * clamped between 1 and the number of chapters in the book.
- * 
+ *
  * @param book The book to get the range from
  * @param chapter The chapter to get the range from
  * @param min The minimum requested verse number
  * @param max The maximum requested verse number
  * @returns A range of verse numbers for the book that are clamped between 1
  * and the number of chapters in the book. Wrapped in an Option as the chapter
- * might not exist in the book. Note: This is different from 
+ * might not exist in the book. Note: This is different from
  * getChapterRangeFromParts which doesn't need to be in an Option as it should
- * never fail. 
+ * never fail.
  */
 function getVerseRangeFromParts(
   book: ValidBookName,
@@ -358,28 +356,26 @@ function getVerseRangeFromParts(
 
     // Get the number of chapters in the book
     O.apS("numVerses", verseCountFrom(book, chapter)),
-   
+
     // Get a bounded range from 1 to the number of chapters in the book
     // in the case the user asked for chapters outside of reality
-    O.bind("boundedRange", ({numVerses}) => 
-      getBounds(numVerses),
-    ),
+    O.bind("boundedRange", ({ numVerses }) => getBounds(numVerses)),
 
     // Get the clamped lower bound
-    O.bind("start", ({boundedRange}) => clampStart(min, max, boundedRange)),
+    O.bind("start", ({ boundedRange }) => clampStart(min, max, boundedRange)),
 
     // Get the clamped upper bound
-    O.bind("end", ({boundedRange}) => clampEnd(min, max, boundedRange)),
+    O.bind("end", ({ boundedRange }) => clampEnd(min, max, boundedRange)),
 
     // Map the results into a tuple containing the min and max
-    O.map(({start, end}) => <[min: number, max: number]>[start, end]),
+    O.map(({ start, end }) => <[min: number, max: number]>[start, end])
   );
 }
 
 /**
  * The verseExistsInChapter takes a book, a chapter and a verse and returns true
- * if it exists and false otherwise. 
- * 
+ * if it exists and false otherwise.
+ *
  * @param book The book to search for the verse
  * @param chapter The chapter to search for the verse
  * @param verse The verse to search for
@@ -404,6 +400,283 @@ function verseExistsInChapter(
     // Get it out if it is true, and return false otherwise
     O.getOrElse(() => false)
   );
+}
+
+// The getNextBook function returns the name of the next book in the Bible, in
+// order that the books appear in the KJV, or none if there is no next book.
+function getNextBook(book: ValidBookName): O.Option<ValidBookName> {
+  return pipe(
+    // Take the array of ordered book names
+    orderedBookNames,
+
+    // Find the index of the current book
+    ROA.findIndex((b) => b === book),
+
+    O.chain((i) => {
+      // Get the next index (if there are more books)
+      const nextIndex = i + 1;
+
+      // Check if the next index has a book
+      return ROA.isOutOfBound(nextIndex, orderedBookNames)
+        ? // if not return a None
+          O.none
+        : // if so return the next book
+          O.some(orderedBookNames[nextIndex]);
+    })
+  );
+}
+
+// The getPreviousBook function returns the name of the previous book in the
+// bible, in order that the books appear in the KJV, or none if there is no
+// previous book.
+function getPreviousBook(book: ValidBookName): O.Option<ValidBookName> {
+  return pipe(
+    // Take the array of ordered book names
+    orderedBookNames,
+
+    // Find the index of the current book
+    ROA.findIndex((b) => b === book),
+
+    O.chain((i) => {
+      // Get the previous index (if there is a book at that location)
+      const prevIndex = i - 1;
+
+      // Check if the previous index has a book
+      return ROA.isOutOfBound(prevIndex, orderedBookNames)
+        ? // if not return a None
+          O.none
+        : // if so return the previous book
+          O.some(orderedBookNames[prevIndex]);
+    })
+  );
+}
+
+// The getNextChapter function takes a book and a chapter number and returns
+// the next chapter number in the book, or the first chapter of the next book
+// if there is no next chapter in the current book, or none if there is no next
+// book.
+function getNextChapter(
+  book: ValidBookName,
+  chapter: number
+): O.Option<readonly [ValidBookName, number, number]> {
+  // increment chapter number
+  const newChapterNumber = chapter + 1;
+
+  // Check if the new chapter number exists in the book
+  // If so return it and the book name it came from
+  if (chapterExistsInBook(book, newChapterNumber)) {
+    return O.some([book, newChapterNumber, 1] as const);
+  }
+
+  // If not, get the next book name if there is one and the first chapter of
+  // that book. Get a none otherwise.
+  return pipe(
+    O.Do,
+    O.apS("nextBook", getNextBook(book)),
+    O.chain(({ nextBook }) => O.some([nextBook, 1, 1] as const))
+  );
+}
+
+// The getPreviousChapter function takes a book and a chapter number and returns
+// the previous chapter number in the book, or the last chapter of the previous
+// book if there is no next chapter in the current book, or none if there is no
+// next book.
+function getPreviousChapter(
+  book: ValidBookName,
+  chapter: number
+): O.Option<readonly [ValidBookName, number, number]> {
+  // decrement chapter number
+  const newChapterNumber = chapter - 1;
+
+  // Check if the new chapter number exists in the book
+  // If so return it and the book name it came from
+  if (chapterExistsInBook(book, newChapterNumber)) {
+    const verseCountOpt = verseCountFrom(
+      book,
+      newChapterNumber
+    );
+
+    if(O.isSome(verseCountOpt)) {
+      return O.some([book, newChapterNumber, verseCountOpt.value] as const);
+    }
+
+    return O.none;
+  }
+
+  // If not, get the next book name if there is one with the last chapter of
+  // the previous book. Return a none otherwise.
+  return pipe(
+    O.Do,
+    O.apS("prevBook", getPreviousBook(book)),
+    O.chain(({ prevBook }) => {
+      const verseCountOpt = verseCountFrom(
+        prevBook,
+        chapterCountFrom(prevBook)
+      );
+
+      if (O.isSome(verseCountOpt)) {
+        return O.some([
+          prevBook,
+          chapterCountFrom(prevBook),
+          verseCountOpt.value,
+        ] as const);
+      }
+
+      return O.none;
+    })
+  );
+}
+
+function getNextVerse(book: ValidBookName, chapter: number, verse: number) {
+  // increment verse number
+  const newVerseNumber = verse + 1;
+
+  // Check if the new verse number exists in the book
+  // If so return it and the book name it came from
+  if (verseExistsInChapter(book, chapter, newVerseNumber)) {
+    return O.some([book, chapter, newVerseNumber] as const);
+  }
+
+  // If not, get the next chapter number if there is one and the first verse of
+  // that chapter. Return a none otherwise.
+  return pipe(
+    O.Do,
+    O.apS("nextChapter", getNextChapter(book, chapter)),
+    O.chain(({ nextChapter }) => O.some([nextChapter[0], nextChapter[1], nextChapter[2]]))
+  );
+}
+
+function getPreviousVerse(book: ValidBookName, chapter: number, verse: number) {
+  // increment verse number
+  const newVerseNumber = verse - 1;
+
+  // Check if the new verse number exists in the book
+  // If so return it and the book name it came from
+  if (verseExistsInChapter(book, chapter, newVerseNumber)) {
+    return O.some([book, chapter, newVerseNumber] as const);
+  }
+
+  // If not, get the next chapter number if there is one and the first verse of
+  // that chapter. Return a none otherwise.
+  return pipe(
+    O.Do,
+    O.apS("previousChapter", getPreviousChapter(book, chapter)),
+    O.chain(({ previousChapter }) =>
+      O.some([
+        previousChapter[0],
+        previousChapter[1],
+        previousChapter[2],
+      ])
+    )
+  );
+}
+
+function wrapBookParam(
+  book: string | null | undefined
+): O.Option<ValidBookName> {
+  return pipe(
+    book?.toLowerCase(),
+    O.fromNullable,
+    O.chain((candidateBook) =>
+      pipe(
+        orderedBookNames,
+        ROA.findFirst((b) => b === candidateBook)
+      )
+    )
+  );
+}
+
+function wrapChapterParam(
+  book: O.Option<ValidBookName>,
+  chapter: string | null | undefined
+): O.Option<number> {
+  return O.isSome(book)
+    ? pipe(
+        chapter,
+        O.fromNullable,
+        O.map(Number),
+        O.chain(
+          O.fromPredicate((chapter) => chapterExistsInBook(book.value, chapter))
+        )
+      )
+    : O.none;
+}
+
+function wrapVerseParam(
+  book: O.Option<ValidBookName>,
+  chapter: O.Option<number>,
+  verse: string | null | undefined
+): O.Option<number> {
+  return O.isSome(book) && O.isSome(chapter)
+    ? pipe(
+        verse,
+        O.fromNullable,
+        O.map(Number),
+        O.chain(
+          O.fromPredicate((v) =>
+            verseExistsInChapter(book.value, chapter.value, v)
+          )
+        )
+      )
+    : O.none;
+}
+
+function getParamOpts(
+  book: string | null | undefined,
+  chapter: string | null | undefined,
+  verse: string | null | undefined
+): {
+  bookOpt: O.Option<ValidBookName>;
+  chapterOpt: O.Option<number>;
+  verseOpt: O.Option<number>;
+} {
+  const bookOpt = wrapBookParam(book);
+  const chapterOpt = wrapChapterParam(bookOpt, chapter);
+  const verseOpt = wrapVerseParam(bookOpt, chapterOpt, verse);
+
+  return O.isSome(bookOpt) && O.isSome(chapterOpt)
+    ? { bookOpt, chapterOpt, verseOpt }
+    : { bookOpt: O.none, chapterOpt: O.none, verseOpt: O.none };
+}
+
+function getNext(
+  book: string | null | undefined,
+  chapter: string | null | undefined,
+  verse: string | null | undefined
+) {
+  const { bookOpt, chapterOpt, verseOpt } = getParamOpts(book, chapter, verse);
+
+  if (O.isNone(bookOpt) || O.isNone(chapterOpt)) {
+    return O.none;
+  } else if (O.isNone(verseOpt)) {
+    return getNextChapter(bookOpt.value, Number(chapterOpt.value));
+  } else {
+    return getNextVerse(
+      bookOpt.value,
+      Number(chapterOpt.value),
+      Number(verseOpt.value)
+    );
+  }
+}
+
+function getPrevious(
+  book: ValidBookName | null | undefined,
+  chapter: string | null | undefined,
+  verse: string | null | undefined
+) {
+  const { bookOpt, chapterOpt, verseOpt } = getParamOpts(book, chapter, verse);
+
+  if (O.isNone(bookOpt) || O.isNone(chapterOpt)) {
+    return O.none;
+  } else if (O.isNone(verseOpt)) {
+    return getPreviousChapter(bookOpt.value, Number(chapterOpt.value));
+  } else {
+    return getPreviousVerse(
+      bookOpt.value,
+      Number(chapterOpt.value),
+      Number(verseOpt.value)
+    );
+  }
 }
 
 /**
@@ -1944,4 +2217,6 @@ export {
   verseCountFrom,
   getVerseRangeFromParts,
   verseExistsInChapter,
+  getNext,
+  getPrevious,
 };

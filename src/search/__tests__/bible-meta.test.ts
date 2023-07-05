@@ -3,6 +3,8 @@ import {
   chapterExistsInBook,
   getBookName,
   getChapterRangeFromParts,
+  getNext,
+  getPrevious,
   getVerseRangeFromParts,
   verseCountFrom,
   verseExistsInChapter,
@@ -517,6 +519,118 @@ describe("The book module", () => {
     it("should return false if the chapter doesn't exist in the book", () => {
       const expected = false;
       const result = chapterExistsInBook("1 chronicles", 100);
+      expect(result).toEqual(expected);
+    });
+  });
+
+  describe("The getNext function", () => {
+    it("should return a none if book is not passed", () => {
+      const expected = O.none;
+      const result = getNext(null, null, null);
+      expect(result).toEqual(expected);
+    });
+
+    it("should return a none if book but not chapter is passed", () => {
+      const expected = O.none;
+      const result = getNext("1 chronicles", null, null);
+      expect(result).toEqual(expected);
+    });
+    
+    it("should get next chapter in the same book if book and chapter but not verse is passed", () => {
+      const expected = O.some(["1 chronicles", 2, 1]);
+      const result = getNext("1 chronicles", "1", null);
+      expect(result).toEqual(expected);
+    });
+    
+    it("should get the first chapter of the next book if book and chapter but not verse is passed and it is the final chapter of the current book", () => {
+      const expected = O.some(["2 chronicles", 1, 1]);
+      const result = getNext("1 chronicles", "29", null);
+      expect(result).toEqual(expected);
+    });
+
+    it("should return a none if there is no next chapter when book and chapter but not verse is passed", () => {
+      const expected = O.none;
+      const result = getNext("revelation", "22", null);
+      expect(result).toEqual(expected);
+    });
+
+    it("should get next verse in the same chapter of the book, chapter and verse are passed and there is a next verse", () => {
+      const expected = O.some(["1 chronicles", 1, 2]);
+      const result = getNext("1 chronicles", "1", "1");
+      expect(result).toEqual(expected);
+    });
+    
+    it("should get first verse of the next chapter if the book, chapter and verse are passed and there is no next verse in the current book", () => {
+      const expected = O.some(["1 chronicles", 2, 1]);
+      const result = getNext("1 chronicles", "1", "54");
+      expect(result).toEqual(expected);
+    });
+
+    it("should get first verse of the next book if the book, chapter and verse are passed and there is no next verse in the current book and it is the last chapter of the current book", () => {
+      const expected = O.some(["2 chronicles", 1, 1]);
+      const result = getNext("1 chronicles", "29", "30");
+      expect(result).toEqual(expected);
+    });
+
+    it("should return a none if there is no next verse when book, chapter and verse are passed", () => {
+      const expected = O.none;
+      const result = getNext("revelation", "22", "21");
+      expect(result).toEqual(expected);
+    });
+  }); 
+
+  describe("The getPrevious function", () => {
+    it("should return a none if book is not passed", () => {
+      const expected = O.none;
+      const result = getPrevious(null, null, null);
+      expect(result).toEqual(expected);
+    });
+
+    it("should return a none if book but not chapter is passed", () => {
+      const expected = O.none;
+      const result = getPrevious("1 chronicles", null, null);
+      expect(result).toEqual(expected);
+    });
+
+    it("should get previous chapter in the same book if book and chapter but not verse is passed", () => {
+      const expected = O.some(["1 chronicles", 1, 54]);
+      const result = getPrevious("1 chronicles", "2", null);
+      expect(result).toEqual(expected);
+    });
+    
+    it("should get the last chapter of the previous book if book and chapter but not verse is passed and it is the first chapter of the current book", () => {
+      const expected = O.some(["2 kings", 25, 30]);
+      const result = getPrevious("1 chronicles", "1", null);
+      expect(result).toEqual(expected);
+    });
+
+    it("should return a none if there is no previous chapter when book and chapter but not verse is passed", () => {
+      const expected = O.none;
+      const result = getPrevious("genesis", "1", null);
+      expect(result).toEqual(expected);
+    });
+
+    it("should get previous verse in the same chapter if the book, chapter and verse are passed and there is a previous verse", () => {
+      const expected = O.some(["1 chronicles", 1, 1]);
+      const result = getPrevious("1 chronicles", "1", "2");
+      expect(result).toEqual(expected);
+    });
+
+    it("should get last verse of the previous chapter if the book, chapter and verse are passed and there is no next verse in the current book", () => {
+      const expected = O.some(["1 chronicles", 1, 54]);
+      const result = getPrevious("1 chronicles", "2", "1");
+      expect(result).toEqual(expected);
+    });
+    
+    it("should get last verse and last chapter of the previous book if the book, chapter and verse are passed and there is no previous verse in the current book and it is the first chapter of the current book", () => {
+      const expected = O.some(["2 kings", 25, 30]);
+      const result = getPrevious("1 chronicles", "1", "1");
+      expect(result).toEqual(expected);
+    });
+
+    it("should return a none if there is no previous verse when book, chapter and verse are passed", () => {
+      const expected = O.none;
+      const result = getPrevious("genesis", "1", "1");
       expect(result).toEqual(expected);
     });
   });
