@@ -660,7 +660,7 @@ function getNext(
 }
 
 function getPrevious(
-  book: ValidBookName | null | undefined,
+  book: string | null | undefined,
   chapter: string | null | undefined,
   verse: string | null | undefined
 ) {
