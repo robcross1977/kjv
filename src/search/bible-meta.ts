@@ -542,7 +542,7 @@ function getNextVerse(book: ValidBookName, chapter: number, verse: number) {
   return pipe(
     O.Do,
     O.apS("nextChapter", getNextChapter(book, chapter)),
-    O.chain(({ nextChapter }) => O.some([nextChapter[0], nextChapter[1], nextChapter[2]]))
+    O.chain(({ nextChapter }) => O.some([nextChapter[0], nextChapter[1], nextChapter[2]] as const))
   );
 }
 
@@ -566,7 +566,7 @@ function getPreviousVerse(book: ValidBookName, chapter: number, verse: number) {
         previousChapter[0],
         previousChapter[1],
         previousChapter[2],
-      ])
+      ] as const)
     )
   );
 }
@@ -643,7 +643,7 @@ function getNext(
   book: string | null | undefined,
   chapter: string | null | undefined,
   verse: string | null | undefined
-) {
+): O.Option<readonly [ValidBookName, number, number]> {
   const { bookOpt, chapterOpt, verseOpt } = getParamOpts(book, chapter, verse);
 
   if (O.isNone(bookOpt) || O.isNone(chapterOpt)) {
@@ -663,7 +663,7 @@ function getPrevious(
   book: string | null | undefined,
   chapter: string | null | undefined,
   verse: string | null | undefined
-) {
+): O.Option<readonly [ValidBookName, number, number]> {
   const { bookOpt, chapterOpt, verseOpt } = getParamOpts(book, chapter, verse);
 
   if (O.isNone(bookOpt) || O.isNone(chapterOpt)) {
