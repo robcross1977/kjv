@@ -1,18 +1,43 @@
-import { ValidBookName } from "../search/bible-meta";
-import { SearchType } from "../search/params";
+import { z } from "zod";
 
 // For results
-type VerseRecords = Record<string, string>;
-type ChapterRecords = Record<string, VerseRecords>;
-type BookRecords = Record<string, ChapterRecords>;
-type WrappedRecords = { type: SearchType, records: BookRecords };
+const verseRecordsSchema = z.record(z.string());
+type VerseRecords = z.infer<typeof verseRecordsSchema>;
+
+const chapterRecordsSchema = z.record(verseRecordsSchema);
+type ChapterRecords = z.infer<typeof chapterRecordsSchema>;
+
+const bookRecordsSchema = z.record(chapterRecordsSchema);
+type BookRecords = z.infer<typeof bookRecordsSchema>;
+
+const wrappedRecordsSchema = z.object({
+  type: z.string(),
+  records: bookRecordsSchema,
+});
+type WrappedRecords = z.infer<typeof wrappedRecordsSchema>;
 
 // For searching
-type Chapters = Record<string, Set<number>>;
-type Search = {
-  name: ValidBookName;
-  type: SearchType,
-  chapters: Chapters;
-};
+const chaptersSchema = z.record(z.set(z.number()));
+type Chapters = z.infer<typeof chaptersSchema>;
 
-export { BookRecords, WrappedRecords, ChapterRecords, VerseRecords, Chapters, Search };
+const searchSchema = z.object({
+  name: z.string(),
+  type: z.string(),
+  chapters: chaptersSchema,
+});
+type Search = z.infer<typeof searchSchema>;
+
+export {
+  bookRecordsSchema,
+  BookRecords,
+  wrappedRecordsSchema,
+  WrappedRecords,
+  chapterRecordsSchema,
+  ChapterRecords,
+  verseRecordsSchema,
+  VerseRecords,
+  chaptersSchema,
+  Chapters,
+  searchSchema,
+  Search,
+};

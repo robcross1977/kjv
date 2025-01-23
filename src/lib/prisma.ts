@@ -1,11 +1,10 @@
 import Prisma from "@prisma/client";
-import { PrismaClientOptions } from "@prisma/client/runtime";
 
 const prismaGlobal = global as typeof global & {
   prisma?: Prisma.PrismaClient;
 };
 
-const prisma: Prisma.PrismaClient<PrismaClientOptions, "query"> =
+const prisma: Prisma.PrismaClient<Prisma.Prisma.PrismaClientOptions, "query"> =
   prismaGlobal.prisma ??
   new Prisma.PrismaClient({
     log:

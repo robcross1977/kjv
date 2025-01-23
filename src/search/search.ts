@@ -1,7 +1,12 @@
 import { getBookName, ValidBookName } from "./bible-meta";
 import { IError, errorFrom } from "./error";
 import { ParamsError, TypedParts, getParams } from "./params";
-import { concatChapters, makeChapterArray, Search, SearchBuilderError } from "./search-builder";
+import {
+  concatChapters,
+  makeChapterArray,
+  Search,
+  SearchBuilderError,
+} from "./search-builder";
 import { getSubsChapterArrays, SubsError } from "./subs";
 import { ChapterRecords, WrappedRecords } from "../lib/types";
 import { kjv } from "../kjv";
@@ -73,10 +78,15 @@ function search(query: string) {
         E.fromOption<SearchError>(() => errorFrom<SearchMsg>("no result found"))
       )
     ),
-    E.getOrElse<SearchError | ParamsError | SearchBuilderError | SubsError, WrappedRecords>(() => {return {
-      type: "none",
-      records: {}
-    }})
+    E.getOrElse<
+      SearchError | ParamsError | SearchBuilderError | SubsError,
+      WrappedRecords
+    >(() => {
+      return {
+        type: "none",
+        records: {},
+      };
+    })
   );
 }
 
@@ -129,7 +139,10 @@ function getResult(search: Search) {
     O.Do,
     O.apS("bookName", O.of(search.name)),
     O.apS("type", O.of(search.type)),
-    O.apS("bookJson", O.of(getChapterRecordsByBook(search.name))),
+    O.apS(
+      "bookJson",
+      O.of(getChapterRecordsByBook(search.name as ValidBookName))
+    ),
     O.bind("chapters", ({ bookJson }) =>
       pipe(
         // Get the chapters
@@ -177,10 +190,10 @@ function getResult(search: Search) {
     ),
     O.map(({ bookName, chapters, type }) => {
       return {
-        type, 
+        type,
         records: {
           [bookName]: R.fromEntries(ROA.toArray(chapters)),
-        }
+        },
       };
     })
   );
