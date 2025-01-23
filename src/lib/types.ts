@@ -1,18 +1,24 @@
 import { z } from "zod";
 
 // For results
-const verseRecordsSchema = z.record(z.string());
+const verseRecordsSchema = z
+  .record(z.string().describe("Verse text").optional())
+  .describe("Verse records");
 type VerseRecords = z.infer<typeof verseRecordsSchema>;
 
-const chapterRecordsSchema = z.record(verseRecordsSchema);
+const chapterRecordsSchema = z
+  .record(verseRecordsSchema.describe("Verses"))
+  .describe("Chapter records");
 type ChapterRecords = z.infer<typeof chapterRecordsSchema>;
 
-const bookRecordsSchema = z.record(chapterRecordsSchema);
+const bookRecordsSchema = z
+  .record(chapterRecordsSchema.describe("Chapters"))
+  .describe("book records");
 type BookRecords = z.infer<typeof bookRecordsSchema>;
 
 const wrappedRecordsSchema = z.object({
-  type: z.string(),
-  records: bookRecordsSchema,
+  type: z.string().describe("type of search performed"),
+  records: bookRecordsSchema.describe("records"),
 });
 type WrappedRecords = z.infer<typeof wrappedRecordsSchema>;
 
